@@ -417,8 +417,8 @@ img {
   }
 
   .hero-band img {
-    min-height: 430px;
-    max-height: 620px;
+    min-height: 560px;
+    max-height: 760px;
   }
 
   .brand-title {
@@ -459,7 +459,9 @@ img {
   }
 
   .hero-overlay {
-    padding-top: 1.15rem;
+    align-content: start;
+    padding-top: 2.9rem;
+    padding-bottom: 2rem;
   }
 
   .tagline {
@@ -470,21 +472,26 @@ img {
 
   .awards-fog {
     width: min(95vw, 540px);
-    padding: 0.7rem;
+    padding: 0.58rem 0.62rem;
   }
 
   .awards {
-    font-size: 0.68rem;
-    letter-spacing: 0.1em;
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
   }
 
   .cities {
-    font-size: 0.66rem;
-    line-height: 1.45;
+    font-size: 0.6rem;
+    line-height: 1.35;
+    letter-spacing: 0.04em;
   }
 
   .middle-overlay {
     padding-top: 1rem;
+  }
+
+  .middle-band {
+    margin-top: 2.2rem;
   }
 
   .middle-overlay h2 {
@@ -563,6 +570,15 @@ img {
   .about-band img {
     min-height: 290px;
     max-height: 430px;
+  }
+
+  .middle-band {
+    margin-top: 2.8rem;
+  }
+
+  .hero-band img {
+    min-height: 600px;
+    max-height: 860px;
   }
 
   .brand-title::after {
