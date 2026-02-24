@@ -1,0 +1,145 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Pedido personalizado | Citro Victoria" description="Formulario para ordenar un bolso personalizado.">
+	<main class="order-page">
+		<section class="order-card">
+			<div class="order-top-actions">
+				<a class="social-pill" href="/">Volver al inicio</a>
+				<button id="lang-toggle-order" class="lang-btn" type="button">EN</button>
+			</div>
+			<h1 data-i18n="orderTitle">Formulario de pedido personalizado</h1>
+			<p class="order-hint" data-i18n="orderHint">
+				Completa tus datos y cuéntanos cómo te gustaría tu bolso. Debes dejar al menos
+				<strong>email o teléfono</strong>.
+			</p>
+
+			<form
+				class="order-form"
+				id="order-form"
+				action="#"
+				method="GET"
+			>
+				<label>
+					<span data-i18n="nameLabel">Nombre</span>
+					<input id="name" name="name" type="text" autocomplete="name" />
+				</label>
+
+				<label>
+					<span data-i18n="emailLabel">Email (obligatorio si no dejas teléfono)</span>
+					<input id="email" name="email" type="email" autocomplete="email" />
+				</label>
+
+				<label>
+					<span data-i18n="phoneLabel">Teléfono (obligatorio si no dejas email)</span>
+					<input id="phone" name="phone" type="tel" autocomplete="tel" />
+				</label>
+
+				<label>
+					<span data-i18n="descLabel">Descripción breve de lo que te gustaría</span>
+					<textarea
+						id="message"
+						name="message"
+						data-i18n-placeholder="descPlaceholder"
+						placeholder="Cuéntanos colores, estilo, tamaño del bolso, nombre de tu mascota, etc."
+					></textarea>
+				</label>
+
+				<p class="form-note" data-i18n="formNote">
+					Este formulario abrirá WhatsApp para enviar tu solicitud.
+				</p>
+
+				<button class="btn btn-primary" type="submit" data-i18n="sendBtn">Enviar solicitud</button>
+			</form>
+		</section>
+	</main>
+
+	<script is:inline>
+		const form = document.querySelector('#order-form');
+		const nameInput = document.querySelector('#name');
+		const email = document.querySelector('#email');
+		const phone = document.querySelector('#phone');
+		const message = document.querySelector('#message');
+		const langToggle = document.querySelector('#lang-toggle-order');
+
+		const texts = {
+			es: {
+				orderTitle: 'Formulario de pedido personalizado',
+				orderHint:
+					'Completa tus datos y cuéntanos cómo te gustaría tu bolso. Debes dejar al menos email o teléfono.',
+				nameLabel: 'Nombre',
+				emailLabel: 'Email (obligatorio si no dejas teléfono)',
+				phoneLabel: 'Teléfono (obligatorio si no dejas email)',
+				descLabel: 'Descripción breve de lo que te gustaría',
+				descPlaceholder:
+					'Cuéntanos colores, estilo, tamaño del bolso, nombre de tu mascota, etc.',
+				formNote: 'Este formulario abrirá WhatsApp para enviar tu solicitud.',
+				sendBtn: 'Enviar por WhatsApp',
+				validation: 'Debes completar email o teléfono para poder enviar.',
+			},
+			en: {
+				orderTitle: 'Custom order form',
+				orderHint:
+					'Share your details and tell us the style you want. Please provide at least email or phone.',
+				nameLabel: 'Name',
+				emailLabel: 'Email (required if phone is empty)',
+				phoneLabel: 'Phone (required if email is empty)',
+				descLabel: 'Short description of what you would like',
+				descPlaceholder:
+					'Tell us colors, style, bag size, your pet name, and any references.',
+				formNote: 'This form will open WhatsApp to send your request.',
+				sendBtn: 'Send via WhatsApp',
+				validation: 'Please complete email or phone before submitting.',
+			},
+		};
+
+		const applyLanguage = (lang) => {
+			document.documentElement.lang = lang;
+			document.querySelectorAll('[data-i18n]').forEach((node) => {
+				const key = node.getAttribute('data-i18n');
+				const value = texts[lang][key];
+				if (value) node.textContent = value;
+			});
+			document.querySelectorAll('[data-i18n-placeholder]').forEach((node) => {
+				const key = node.getAttribute('data-i18n-placeholder');
+				const value = texts[lang][key];
+				if (value) node.placeholder = value;
+			});
+			if (langToggle) langToggle.textContent = lang === 'es' ? 'EN' : 'ES';
+			localStorage.setItem('site-lang', lang);
+		};
+
+		const lang = localStorage.getItem('site-lang') || 'es';
+		applyLanguage(lang);
+
+		form?.addEventListener('submit', (event) => {
+			event.preventDefault();
+			const hasEmail = email && email.value.trim().length > 0;
+			const hasPhone = phone && phone.value.trim().length > 0;
+
+			if (!hasEmail && !hasPhone) {
+				const activeLang = document.documentElement.lang === 'en' ? 'en' : 'es';
+				alert(texts[activeLang].validation);
+				email?.focus();
+				return;
+			}
+
+			const lines = [
+				'Hola, quiero hacer un pedido personalizado.',
+				`Nombre: ${nameInput?.value?.trim() || '-'}`,
+				`Email: ${email?.value?.trim() || '-'}`,
+				`Telefono: ${phone?.value?.trim() || '-'}`,
+				`Descripcion: ${message?.value?.trim() || '-'}`,
+			];
+			const whatsappText = encodeURIComponent(lines.join('\n'));
+			const whatsappUrl = `https://wa.me/5493517417645?text=${whatsappText}`;
+			window.location.href = whatsappUrl;
+		});
+
+		langToggle?.addEventListener('click', () => {
+			const next = document.documentElement.lang === 'es' ? 'en' : 'es';
+			applyLanguage(next);
+		});
+	</script>
+</Layout>

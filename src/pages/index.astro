@@ -1,11 +1,189 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
 
-<Layout>
-	<Welcome />
+<Layout
+	title="Citro Victoria | Bolsos de lujo pintados a mano"
+	description="Bolsos de lujo pintados a mano, murales y arte fino."
+>
+	<div class="top-actions">
+		<button id="lang-toggle" class="lang-btn" type="button" aria-label="Cambiar idioma">EN</button>
+		<a class="social-pill" href="https://www.instagram.com/victoria.citro/" target="_blank" rel="noreferrer">
+			Instagram
+		</a>
+		<a class="social-pill" href="https://www.tiktok.com/@vIKICITROART" target="_blank" rel="noreferrer">
+			TikTok
+		</a>
+	</div>
+
+	<header class="hero-band">
+		<img src="/images/Portada_Bag_.jpg" alt="Victoria Citro con bolso pintado" loading="eager" />
+		<div class="hero-overlay">
+			<div class="hero-content">
+				<h1 class="brand-title">CITRO VICTORIA</h1>
+				<p class="tagline" data-i18n="tagline">BOLSOS DE LUJO PINTADOS A MANO · MURALES Y ARTE</p>
+				<div class="cta-row hero-cta-outside">
+					<a class="btn btn-primary" href="/order" data-i18n="ctaOrder">PIDE TU BOLSO PERSONALIZADO</a>
+					<a
+						class="btn btn-primary"
+						href="https://victoria-citro-hoo0-staging.b12sites.com/index"
+						target="_blank"
+						rel="noreferrer"
+						data-i18n="ctaArt"
+					>
+						VER ARTE Y MURALES
+					</a>
+				</div>
+				<div class="awards-fog">
+					<p class="awards" data-i18n="awardsTitle">EXHIBIDA Y PREMIADA EN:</p>
+					<p class="cities" data-i18n="awardsList">
+						WORLD ART DUBAI, NFT PARIS, VENICE BIENALE, SCOPE MIAMI, CAIRO NEMEC, FORBES
+						MAGAZINE, PORTOFINNO CASTELLO BROWN, MUSEUM OF THE FUTURE DUBAI, NOX TOKYO.
+					</p>
+				</div>
+			</div>
+		</div>
+	</header>
+
+	<main class="page-main">
+		<section class="middle-band">
+			<img src="/images/bags.png" alt="Modelos de bolsos personalizados" loading="lazy" />
+			<div class="middle-overlay">
+				<h2 data-i18n="middleTitle">BOLSOS DE LUJO PERSONALIZADOS</h2>
+				<p data-i18n="middleSubtitle">PINTADOS A MANO · UNICOS · HECHOS CON AMOR</p>
+				<a class="btn btn-primary" href="/order" data-i18n="middleCta">PEDIR AQUI</a>
+			</div>
+		</section>
+
+		<section class="reviews-strip">
+			<div class="reviews-inner">
+				<p class="reviews-title" data-i18n="reviewsTitle">RESEÑAS - TESTIMONIOS DE CLIENTES</p>
+				<div class="reviews-grid">
+					<article class="review-card">
+						<img src="/images/woman_dog_bag_1.jpeg" alt="Review cliente 1" loading="lazy" />
+						<p>★★★★★</p>
+						<span data-i18n="review1">"EL MEJOR REGALO..."</span>
+					</article>
+					<article class="review-card">
+						<img src="/images/bag_woman_2.jpeg" alt="Review cliente 2" loading="lazy" />
+						<p>★★★★★</p>
+						<span data-i18n="review2">"CALIDAD DE LUJO..."</span>
+					</article>
+					<article class="review-card">
+						<img src="/images/bag_woman_3.jpeg" alt="Review cliente 3" loading="lazy" />
+						<p>★★★★★</p>
+						<span data-i18n="review3">"...HERMOSO"</span>
+					</article>
+				</div>
+			</div>
+		</section>
+
+		<section class="about-band" id="about">
+			<img src="/images/Portada_Bag_2.jpg" alt="Victoria Citro con mascota" loading="lazy" />
+			<div class="about-overlay">
+				<div class="about-card">
+					<p class="about-title" data-i18n="aboutTitle">SOBRE LA ARTISTA</p>
+					<h2>VICTORIA CITRO</h2>
+					<p data-i18n="aboutP1">
+						Victoria es una artista contemporánea argentina cuyo trabajo combina creatividad,
+						narrativa emocional y un profundo amor por los animales. Tras vivir y crear en
+						Mallorca, España, y expandir su visión internacionalmente, ha exhibido su arte en
+						ciudades como Dubái, Venecia, Londres, Nueva York, Portofino y Miami.
+					</p>
+					<p data-i18n="aboutP2">
+						Su pasión por los animales no es solo inspiración: es parte de su vida. Victoria
+						rescata y cuida activamente animales de la calle, y ese vínculo profundo está en
+						el corazón de su marca. Cada bolso pintado a mano se crea con intención, emoción
+						y amor.
+					</p>
+					<p data-i18n="aboutP3">
+						Combinando artesanía de lujo con una historia personal, Victoria transforma cada
+						pieza en un tesoro emocional único. Su obra es vibrante, expresiva y llena de
+						alma, como los animales que honra a través de su arte.
+					</p>
+					<p data-i18n="aboutP4">
+						Esto no es solo una marca.
+						<br />Es amor. Es memoria. Es arte hecho desde el corazón.
+					</p>
+				</div>
+			</div>
+		</section>
+	</main>
+
+	<script is:inline>
+		const langToggle = document.querySelector('#lang-toggle');
+		const messages = {
+			es: {
+				tagline: 'BOLSOS DE LUJO PINTADOS A MANO · MURALES Y ARTE',
+				ctaOrder: 'PIDE TU BOLSO PERSONALIZADO',
+				ctaArt: 'VER ARTE Y MURALES',
+				awardsTitle: 'EXHIBIDA Y PREMIADA EN:',
+				awardsList:
+					'WORLD ART DUBAI, NFT PARIS, VENICE BIENALE, SCOPE MIAMI, CAIRO NEMEC, FORBES MAGAZINE, PORTOFINNO CASTELLO BROWN, MUSEUM OF THE FUTURE DUBAI, NOX TOKYO.',
+				middleTitle: 'BOLSOS DE LUJO PERSONALIZADOS',
+				middleSubtitle: 'PINTADOS A MANO · UNICOS · HECHOS CON AMOR',
+				middleCta: 'PEDIR AQUI',
+				reviewsTitle: 'RESEÑAS - TESTIMONIOS DE CLIENTES',
+				review1: '"EL MEJOR REGALO..."',
+				review2: '"CALIDAD DE LUJO..."',
+				review3: '"...HERMOSO"',
+				aboutTitle: 'SOBRE LA ARTISTA',
+				aboutP1:
+					'Victoria es una artista contemporánea argentina cuyo trabajo combina creatividad, narrativa emocional y un profundo amor por los animales. Tras vivir y crear en Mallorca, España, y expandir su visión internacionalmente, ha exhibido su arte en ciudades como Dubái, Venecia, Londres, Nueva York, Portofino y Miami.',
+				aboutP2:
+					'Su pasión por los animales no es solo inspiración: es parte de su vida. Victoria rescata y cuida activamente animales de la calle, y ese vínculo profundo está en el corazón de su marca. Cada bolso pintado a mano se crea con intención, emoción y amor.',
+				aboutP3:
+					'Combinando artesanía de lujo con una historia personal, Victoria transforma cada pieza en un tesoro emocional único. Su obra es vibrante, expresiva y llena de alma, como los animales que honra a través de su arte.',
+				aboutP4:
+					'Esto no es solo una marca.<br>Es amor. Es memoria. Es arte hecho desde el corazón.',
+			},
+			en: {
+				tagline: 'LUXURY HAND-PAINTED BAGS · MURALS & FINE ART',
+				ctaOrder: 'ORDER YOUR CUSTOM BAG',
+				ctaArt: 'VIEW ART & MURALS',
+				awardsTitle: 'EXHIBITED AND AWARDED IN:',
+				awardsList:
+					'WORLD ART DUBAI, NFT PARIS, VENICE BIENALE, SCOPE MIAMI, CAIRO NEMEC, FORBES MAGAZINE, PORTOFINNO CASTELLO BROWN, MUSEUM OF THE FUTURE DUBAI, NOX TOKYO.',
+				middleTitle: 'CUSTOM LUXURY PET BAGS',
+				middleSubtitle: 'HAND PAINTED · UNIQUE · MADE WITH LOVE',
+				middleCta: 'ORDER HERE',
+				reviewsTitle: 'REVIEWS - CLIENT TESTIMONIALS',
+				review1: '"BEST GIFT EVER..."',
+				review2: '"LUXURY QUALITY..."',
+				review3: '"...SUPER CUTE"',
+				aboutTitle: 'ABOUT THE ARTIST',
+				aboutP1:
+					'Victoria is an Argentinian contemporary artist whose work blends bold creativity, emotional storytelling, and a deep love for animals. After living and creating in Mallorca, Spain, and expanding her vision internationally, she has exhibited in cities such as Dubai, Venice, London, New York, Portofino and Miami.',
+				aboutP2:
+					'Her passion for animals is not only inspiration: it is part of her life. Victoria actively rescues and cares for street animals, and that deep connection is at the heart of her brand. Every hand-painted bag is created with intention, emotion and love.',
+				aboutP3:
+					'Blending luxury craftsmanship with personal storytelling, Victoria transforms each piece into a one-of-a-kind emotional treasure. Her work is vibrant, expressive and full of soul, like the animals she honors through her art.',
+				aboutP4: 'This is not just a brand.<br>It is love. It is memory. It is art made from the heart.',
+			},
+		};
+
+		const applyLanguage = (lang) => {
+			document.documentElement.lang = lang;
+			document.querySelectorAll('[data-i18n]').forEach((node) => {
+				const key = node.getAttribute('data-i18n');
+				const value = messages[lang][key];
+				if (!value) return;
+				if (value.includes('<br>')) {
+					node.innerHTML = value;
+					return;
+				}
+				node.textContent = value;
+			});
+			if (langToggle) langToggle.textContent = lang === 'es' ? 'EN' : 'ES';
+			localStorage.setItem('site-lang', lang);
+		};
+
+		const stored = localStorage.getItem('site-lang') || 'es';
+		applyLanguage(stored);
+
+		langToggle?.addEventListener('click', () => {
+			const next = document.documentElement.lang === 'es' ? 'en' : 'es';
+			applyLanguage(next);
+		});
+	</script>
 </Layout>
