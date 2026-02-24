@@ -110,6 +110,7 @@ img {
   justify-items: center;
   gap: 0.55rem;
   text-align: center;
+  max-width: min(95vw, 960px);
 }
 
 .brand-title {
@@ -157,6 +158,7 @@ img {
   color: #131518;
   border-radius: 2px;
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  touch-action: manipulation;
 }
 
 .btn:hover {
@@ -253,6 +255,18 @@ img {
 
 .review-card img {
   aspect-ratio: 4 / 3;
+}
+
+.review-card:nth-child(1) img {
+  object-position: center 32%;
+}
+
+.review-card:nth-child(2) img {
+  object-position: center 36%;
+}
+
+.review-card:nth-child(3) img {
+  object-position: center 42%;
 }
 
 .review-card p {
@@ -399,24 +413,171 @@ img {
   .hero-band img,
   .middle-band img,
   .about-band img {
-    min-height: 420px;
+    min-height: 320px;
+    max-height: 500px;
   }
 
   .brand-title {
-    font-size: clamp(1.8rem, 12vw, 2.85rem);
+    font-size: clamp(2rem, 11vw, 2.8rem);
+    letter-spacing: 0.08em;
   }
 
   .top-actions {
-    left: 0.65rem;
-    right: 0.65rem;
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    right: auto;
+    top: auto;
+    bottom: 0.7rem;
+    width: min(94vw, 460px);
+    justify-content: center;
+    padding: 0.35rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.36);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.14);
   }
 
   .cta-row {
     flex-direction: column;
+    width: min(94vw, 330px);
+    margin-top: 0.25rem;
+  }
+
+  .cta-row .btn {
+    width: 100%;
+    text-align: center;
   }
 
   .order-top-actions {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .hero-overlay {
+    padding-top: 1.15rem;
+  }
+
+  .tagline {
+    font-size: 0.73rem;
+    letter-spacing: 0.09em;
+    line-height: 1.35;
+  }
+
+  .awards-fog {
+    width: min(95vw, 540px);
+    padding: 0.7rem;
+  }
+
+  .awards {
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+  }
+
+  .cities {
+    font-size: 0.66rem;
+    line-height: 1.45;
+  }
+
+  .middle-overlay {
+    padding-top: 1rem;
+  }
+
+  .middle-overlay h2 {
+    font-size: clamp(1.6rem, 8vw, 2.15rem);
+    border-bottom-width: 1px;
+  }
+
+  .middle-overlay p {
+    font-size: 0.7rem;
+    letter-spacing: 0.07em;
+  }
+
+  .about-overlay {
+    justify-items: center;
+    padding-left: 0.8rem;
+    padding-right: 0.8rem;
+  }
+
+  .about-card {
+    width: min(100%, 620px);
+    padding: 1rem;
+  }
+
+  .about-card h2 {
+    font-size: clamp(1.5rem, 9vw, 2rem);
+    line-height: 0.98;
+  }
+
+  .about-card p {
+    font-size: 0.85rem;
+    line-height: 1.45;
+  }
+
+  .order-page {
+    padding: 1rem 0.65rem 5.5rem;
+  }
+
+  .order-card {
+    padding: 1rem;
+  }
+
+  .order-card h1 {
+    font-size: clamp(1.6rem, 11vw, 2.2rem);
+  }
+
+  .order-hint {
+    font-size: 0.9rem;
+  }
+
+  .order-form label {
+    font-size: 0.76rem;
+  }
+
+  .order-form input,
+  .order-form textarea {
+    padding: 0.78rem 0.85rem;
+  }
+}
+
+@media (max-width: 430px) {
+  .top-actions {
+    width: min(96vw, 360px);
+    gap: 0.3rem;
+    padding: 0.25rem;
+  }
+
+  .lang-btn,
+  .social-pill {
+    font-size: 0.64rem;
+    padding: 0.42rem 0.58rem;
+    letter-spacing: 0.06em;
+  }
+
+  .hero-band img,
+  .middle-band img,
+  .about-band img {
+    min-height: 290px;
+    max-height: 430px;
+  }
+
+  .brand-title::after {
+    width: min(88vw, 320px);
+  }
+
+  .reviews-strip {
+    padding: 1.6rem 0.75rem;
+  }
+
+  .reviews-title {
+    font-size: 0.75rem;
+  }
+
+  .review-card span {
+    font-size: 0.66rem;
+  }
+
+  .form-note {
+    font-size: 0.78rem;
   }
 }
