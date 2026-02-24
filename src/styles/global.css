@@ -410,11 +410,15 @@ img {
 }
 
 @media (max-width: 768px) {
-  .hero-band img,
   .middle-band img,
   .about-band img {
     min-height: 320px;
     max-height: 500px;
+  }
+
+  .hero-band img {
+    min-height: 430px;
+    max-height: 620px;
   }
 
   .brand-title {
