@@ -417,8 +417,8 @@ img {
   }
 
   .hero-band img {
-    min-height: 560px;
-    max-height: 760px;
+    min-height: 500px;
+    max-height: 680px;
   }
 
   .brand-title {
@@ -460,8 +460,8 @@ img {
 
   .hero-overlay {
     align-content: start;
-    padding-top: 2.9rem;
-    padding-bottom: 2rem;
+    padding-top: 2.2rem;
+    padding-bottom: 1rem;
   }
 
   .tagline {
@@ -491,7 +491,7 @@ img {
   }
 
   .middle-band {
-    margin-top: 2.2rem;
+    margin-top: 1rem;
   }
 
   .middle-overlay h2 {
@@ -573,12 +573,12 @@ img {
   }
 
   .middle-band {
-    margin-top: 2.8rem;
+    margin-top: 1.35rem;
   }
 
   .hero-band img {
-    min-height: 600px;
-    max-height: 860px;
+    min-height: 530px;
+    max-height: 760px;
   }
 
   .brand-title::after {
