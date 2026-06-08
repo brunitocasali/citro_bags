@@ -1,0 +1,53 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import OrderDialog from '../OrderDialog.astro';
+import MetaPixelEbooks from './MetaPixelEbooks.astro';
+import type { PixelViewContent } from '../../config/metaPixelEbooks';
+import '../../styles/ebooks.css';
+
+interface Props {
+	title: string;
+	description: string;
+	/** Ficha de ebook: dispara `ViewContent` además de `PageView`. */
+	pixelViewContent?: PixelViewContent;
+}
+
+const { title, description, pixelViewContent } = Astro.props;
+---
+
+<Layout title={title} description={description}>
+	<MetaPixelEbooks viewContent={pixelViewContent} />
+	<div class="eb-page">
+		<nav class="eb-nav" aria-label="Ebooks">
+			<a class="eb-logo" href="/">Citro Victoria</a>
+			<div class="eb-nav-actions">
+				<a href="/ebooks">Biblioteca</a>
+				<a href="/">Inicio</a>
+				<button type="button" class="btn btn-primary eb-nav-pedido js-open-order-dialog">Pedir bolso</button>
+				<button type="button" id="eb-lang-toggle" class="site-header__lang" aria-label="Idioma">EN</button>
+			</div>
+		</nav>
+		<slot />
+	</div>
+	<OrderDialog />
+	<script is:inline>
+		(function () {
+			const ebLang = document.querySelector('#eb-lang-toggle');
+			function syncFromStorage() {
+				const st = localStorage.getItem('site-lang') === 'en' ? 'en' : 'es';
+				document.documentElement.lang = st;
+				if (ebLang) ebLang.textContent = st === 'es' ? 'EN' : 'ES';
+				window.dispatchEvent(new CustomEvent('CV_SITE_LANG', { detail: { lang: st } }));
+			}
+			syncFromStorage();
+			ebLang?.addEventListener('click', () => {
+				const next = document.documentElement.lang === 'es' ? 'en' : 'es';
+				document.documentElement.lang = next;
+				localStorage.setItem('site-lang', next);
+				ebLang.textContent = next === 'es' ? 'EN' : 'ES';
+				window.dispatchEvent(new CustomEvent('CV_SITE_LANG', { detail: { lang: next } }));
+				window.dispatchEvent(new CustomEvent('CV_EB_LANG', { detail: { lang: next } }));
+			});
+		})();
+	</script>
+</Layout>

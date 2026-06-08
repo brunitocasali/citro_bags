@@ -3,6 +3,9 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
+    "sync:ebooks": "node ./scripts/sync-ebooks.mjs",
+    "predev": "npm run sync:ebooks",
+    "prebuild": "npm run sync:ebooks",
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
@@ -10,5 +13,8 @@
   },
   "dependencies": {
     "astro": "^5.17.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1"
   }
 }

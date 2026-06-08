@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 420" width="520" height="420">
+  <defs>
+    <linearGradient id="paper" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#fffdf8"/>
+      <stop offset="100%" style="stop-color:#f3ebe0"/>
+    </linearGradient>
+    <filter id="bs">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#3d342d" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+  <rect x="24" y="32" width="472" height="356" rx="24" fill="#d4c4b0" filter="url(#bs)"/>
+  <path d="M260 48v324" stroke="#c5a07d" stroke-width="1" opacity="0.5"/>
+  <rect x="40" y="52" width="208" height="316" rx="4" fill="url(#paper)"/>
+  <rect x="272" y="52" width="208" height="316" rx="4" fill="url(#paper)"/>
+  <text x="84" y="100" font-family="Georgia,serif" font-size="18" fill="#4a3728" letter-spacing="0.2em">THE BEAUTY</text>
+  <rect x="60" y="120" width="168" height="6" rx="2" fill="#4a3728" opacity="0.12"/>
+  <rect x="60" y="136" width="148" height="6" rx="2" fill="#4a3728" opacity="0.08"/>
+  <rect x="60" y="152" width="156" height="6" rx="2" fill="#4a3728" opacity="0.08"/>
+  <path d="M340 180c24-8 48 20 40 52-6 28-32 40-52 32" fill="none" stroke="#7a8f6b" stroke-width="1.8" opacity="0.7"/>
+  <path d="M352 200c12-16 36-8 44 8s-4 36-24 40" fill="none" stroke="#7a8f6b" stroke-width="1.4" opacity="0.55"/>
+  <rect x="292" y="220" width="168" height="6" rx="2" fill="#4a3728" opacity="0.08"/>
+  <rect x="292" y="236" width="152" height="6" rx="2" fill="#4a3728" opacity="0.06"/>
+</svg>

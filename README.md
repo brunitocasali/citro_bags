@@ -45,7 +45,9 @@ Por eso, la migracion recomendada es recrear el sitio en codigo con los mismos a
 │   ├── layouts/
 │   │   └── Layout.astro
 │   ├── pages/
-│   │   └── index.astro
+│   │   ├── index.astro
+│   │   └── ebooks/
+│   │       └── index.astro   # Landing /ebooks
 │   └── styles/
 │       └── global.css
 ├── astro.config.mjs
@@ -78,6 +80,14 @@ git push -u origin main
 3. Deploy:
    - Vercel: importar repo y desplegar (preset Astro automatico).
    - Netlify: importar repo y desplegar con `npm run build` y publish `dist`.
+
+## Ebooks (lead magnet)
+
+- URL: **`/ebooks`**
+- Contenido: `src/data/ebooks.ts`
+- Estilos: `src/styles/ebooks.css`
+- Guía técnica + BD y compatibilidad: **`docs/EBOOKS_INTEGRATION.md`**
+- Assets públicos (PDF, portadas): **`public/ebooks/`**
 
 ## Siguientes ajustes recomendados
 

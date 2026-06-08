@@ -1,0 +1,58 @@
+---
+import EbooksShell from './EbooksShell.astro';
+import { ebooksCatalog } from '../../data/ebooks';
+
+const meta = {
+  title: 'Ebooks | Citro Victoria',
+  description: 'Guías y recursos gratuitos sobre bolsos pintados a mano, arte y proceso creativo.',
+};
+---
+
+<EbooksShell title={meta.title} description={meta.description}>
+	<main class="eb-catalog">
+		<header class="eb-catalog-hero">
+			<p class="eb-eyebrow">Biblioteca</p>
+			<h1>Ebooks y guías</h1>
+			<p class="eb-catalog-lead">
+				Material para leer con calma: proceso, inspiración y cómo encargar una pieza única. Iremos sumando nuevos
+				títulos.
+			</p>
+		</header>
+
+		<ul class="eb-catalog-grid">
+			{
+				ebooksCatalog.map((book) => (
+					<li class:list={['eb-catalog-card', book.status === 'coming_soon' && 'eb-catalog-card--soon']}>
+						{book.coverImage ? (
+							<div class="eb-catalog-card__media">
+								<img src={book.coverImage} alt="" loading="lazy" width="800" height="500" />
+							</div>
+						) : (
+							<div class="eb-catalog-card__placeholder" aria-hidden="true" />
+						)}
+						<div class="eb-catalog-card__body">
+							<p class="eb-catalog-card__badge">{book.badge}</p>
+							<h2 class="eb-catalog-card__title">{book.title}</h2>
+							<p class="eb-catalog-card__subtitle">{book.subtitle}</p>
+							<p class="eb-catalog-card__desc">{book.description}</p>
+							{book.status === 'published' ? (
+								<a class="btn btn-primary" href={`/ebooks/${book.slug}`}>
+									Ver guía
+								</a>
+							) : (
+								<span class="eb-catalog-soon">Próximamente</span>
+							)}
+						</div>
+					</li>
+				))
+			}
+		</ul>
+	</main>
+
+	<footer class="eb-footer">
+		<p>Citro Victoria · Arte y bolsos pintados a mano</p>
+		<p>
+			<a href="/" style="color: inherit">Inicio</a>
+		</p>
+	</footer>
+</EbooksShell>

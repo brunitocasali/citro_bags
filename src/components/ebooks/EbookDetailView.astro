@@ -1,0 +1,122 @@
+---
+import type { EbookDetail } from '../../data/ebooks';
+
+interface Props {
+	detail: EbookDetail;
+	slug: string;
+}
+
+const { detail, slug } = Astro.props;
+const { hero, bullets, chapters, trust, lead } = detail;
+---
+
+<main class="eb-detail">
+	<p class="eb-detail-back">
+		<a href="/ebooks">← Volver a la biblioteca</a>
+	</p>
+
+	<section class="eb-hero">
+		<p class="eb-eyebrow">{hero.eyebrow}</p>
+		<h1>{hero.title}</h1>
+		<p>{hero.subtitle}</p>
+		<div class="eb-cta-row">
+			<a class="btn btn-primary" href="#lead">{hero.ctaPrimary}</a>
+			<a class="btn btn-primary" href={hero.whatsappHref} target="_blank" rel="noreferrer">
+				{hero.ctaSecondary}
+			</a>
+			<button type="button" class="btn btn-secondary js-open-order-dialog">Pedir bolso personalizado</button>
+		</div>
+	</section>
+
+	<section class="eb-section" aria-labelledby="eb-que-incluye">
+		<h2 id="eb-que-incluye">Qué vas a encontrar</h2>
+		<ul class="eb-list">
+			{bullets.map((item) => <li>{item}</li>)}
+		</ul>
+	</section>
+
+	<section class="eb-section" aria-labelledby="eb-capitulos">
+		<h2 id="eb-capitulos">Dentro de la guía</h2>
+		<div class="eb-grid">
+			{
+				chapters.map((c) => (
+					<article class="eb-card">
+						<h3>{c.title}</h3>
+						<p>{c.text}</p>
+					</article>
+				))
+			}
+		</div>
+	</section>
+
+	<section class="eb-section" aria-labelledby="eb-confianza">
+		<h2 id="eb-confianza">{trust.title}</h2>
+		<ul class="eb-list">
+			{trust.lines.map((line) => <li>{line}</li>)}
+		</ul>
+	</section>
+
+	<section class="eb-section" id="lead" aria-labelledby="eb-lead-title">
+		<h2 id="eb-lead-title">{lead.title}</h2>
+		<p
+			style="text-align:center;color:var(--muted);max-width:42ch;margin:0 auto 1.25rem;font-size:0.95rem;"
+		>
+			{lead.hint}
+		</p>
+		<form class="eb-lead" id="eb-lead-form" data-ebook-slug={slug} data-ebook-title={hero.title}>
+			<label>
+				Nombre
+				<input id="eb-name" name="name" type="text" autocomplete="name" required />
+			</label>
+			<label>
+				Email
+				<input id="eb-email" name="email" type="email" autocomplete="email" required />
+			</label>
+			<button class="btn btn-primary" type="submit" style="width:100%;margin-top:0.5rem;">
+				{lead.submitLabel}
+			</button>
+			<p class="eb-note">{lead.note}</p>
+		</form>
+	</section>
+</main>
+
+<footer class="eb-footer">
+	<p>Citro Victoria · {hero.title}</p>
+	<p>
+		<a href="/ebooks" style="color: inherit">Biblioteca</a>
+		·
+		<a href="/" style="color: inherit">Inicio</a>
+	</p>
+</footer>
+
+<script is:inline>
+	const form = document.querySelector('#eb-lead-form');
+	const nameInput = document.querySelector('#eb-name');
+	const emailInput = document.querySelector('#eb-email');
+	const waBase = 'https://wa.me/5493517417645?text=';
+
+	form?.addEventListener('submit', (e) => {
+		e.preventDefault();
+		const slug = form?.getAttribute('data-ebook-slug') || '';
+		const title = form?.getAttribute('data-ebook-title') || slug;
+		const name = nameInput?.value?.trim() || '';
+		const email = emailInput?.value?.trim() || '';
+		const text = encodeURIComponent(
+			`Hola, quiero el ebook gratuito (${slug}).\nNombre: ${name}\nEmail: ${email}`,
+		);
+		const go = () => {
+			window.location.href = waBase + text;
+		};
+		if (typeof fbq === 'function') {
+			const leadPayload = {
+				content_name: title,
+				content_type: 'product',
+			};
+			if (slug) leadPayload.content_ids = [slug];
+			fbq('track', 'Lead', leadPayload);
+			setTimeout(go, 120);
+		} else {
+			go();
+		}
+	});
+</script>

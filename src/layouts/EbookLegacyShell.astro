@@ -1,0 +1,30 @@
+---
+/**
+ * Documento HTML completo para la landing legacy de /ebooks
+ * (sin global.css de la home para no pisar estilos del diseño original).
+ */
+export interface Props {
+	title: string;
+	description?: string;
+	headHtml: string;
+	bodyHtml: string;
+}
+
+const { title, description = '', headHtml, bodyHtml } = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="description" content={description} />
+		<meta name="generator" content={Astro.generator} />
+		<link rel="icon" href="/favicon.ico" />
+		<title>{title}</title>
+		<Fragment set:html={headHtml} />
+	</head>
+	<body>
+		<div id="ebook-legacy-root" set:html={bodyHtml} />
+	</body>
+</html>

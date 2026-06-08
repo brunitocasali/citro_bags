@@ -1,0 +1,181 @@
+---
+/* Modal de pedido: textos con data-oi18n (no pasan por el i18n de la home). */
+---
+
+<dialog id="order-dialog" class="order-dialog" aria-labelledby="order-modal-title">
+	<div class="order-dialog__card">
+		<div class="order-dialog__head">
+			<h2 class="order-dialog__title" id="order-modal-title" data-oi18n="orderTitle">Formulario de pedido personalizado</h2>
+			<button
+				type="button"
+				class="order-dialog__close"
+				id="order-dialog-close"
+				data-oi18n-aria="modalCloseAria"
+				aria-label="Cerrar"
+			>
+				<span aria-hidden="true">×</span>
+			</button>
+		</div>
+		<p class="order-dialog__hint" data-oi18n="orderHint">
+			Completa tus datos y cuéntanos cómo te gustaría tu bolso. Debes dejar al menos email o teléfono.
+		</p>
+		<form id="order-dialog-form" class="order-form order-dialog__form" action="#" method="get">
+			<label>
+				<span data-oi18n="nameLabel">Nombre</span>
+				<input id="order-modal-name" name="name" type="text" autocomplete="name" />
+			</label>
+			<label>
+				<span data-oi18n="emailLabel">Email (obligatorio si no dejas teléfono)</span>
+				<input id="order-modal-email" name="email" type="email" autocomplete="email" />
+			</label>
+			<label>
+				<span data-oi18n="phoneLabel">Teléfono (obligatorio si no dejas email)</span>
+				<input id="order-modal-phone" name="phone" type="tel" autocomplete="tel" />
+			</label>
+			<label>
+				<span data-oi18n="descLabel">Descripción breve de lo que te gustaría</span>
+				<textarea
+					id="order-modal-message"
+					name="message"
+					data-oi18n-placeholder="descPlaceholder"
+					placeholder="Cuéntanos colores, estilo, tamaño del bolso, nombre de tu mascota, etc."
+				></textarea>
+			</label>
+			<p class="form-note" data-oi18n="formNote">Este formulario abrirá WhatsApp para enviar tu solicitud.</p>
+			<button class="btn btn-primary" type="submit" data-oi18n="sendBtn">Enviar solicitud</button>
+		</form>
+	</div>
+</dialog>
+
+<script is:inline>
+	(function () {
+		if (window.__cvOrderDialogInit) return;
+		window.__cvOrderDialogInit = true;
+
+		const OI = {
+			es: {
+				orderTitle: 'Formulario de pedido personalizado',
+				orderHint:
+					'Completa tus datos y cuéntanos cómo te gustaría tu bolso. Debes dejar al menos email o teléfono.',
+				nameLabel: 'Nombre',
+				emailLabel: 'Email (obligatorio si no dejas teléfono)',
+				phoneLabel: 'Teléfono (obligatorio si no dejas email)',
+				descLabel: 'Descripción breve de lo que te gustaría',
+				descPlaceholder:
+					'Cuéntanos colores, estilo, tamaño del bolso, nombre de tu mascota, etc.',
+				formNote: 'Este formulario abrirá WhatsApp para enviar tu solicitud.',
+				sendBtn: 'Enviar por WhatsApp',
+				modalCloseAria: 'Cerrar',
+				validation: 'Debes completar email o teléfono para poder enviar.',
+			},
+			en: {
+				orderTitle: 'Custom order form',
+				orderHint:
+					'Share your details and tell us the style you want. Please provide at least email or phone.',
+				nameLabel: 'Name',
+				emailLabel: 'Email (required if phone is empty)',
+				phoneLabel: 'Phone (required if email is empty)',
+				descLabel: 'Short description of what you would like',
+				descPlaceholder:
+					'Tell us colors, style, bag size, your pet name, and any references.',
+				formNote: 'This form will open WhatsApp to send your request.',
+				sendBtn: 'Send via WhatsApp',
+				modalCloseAria: 'Close',
+				validation: 'Please complete email or phone before submitting.',
+			},
+		};
+
+		function applyOrderDialogLang(lang) {
+			const root = document.querySelector('#order-dialog');
+			if (!root) return;
+			const t = OI[lang] || OI.es;
+			root.querySelectorAll('[data-oi18n]').forEach((node) => {
+				const key = node.getAttribute('data-oi18n');
+				if (key && t[key]) node.textContent = t[key];
+			});
+			root.querySelectorAll('[data-oi18n-placeholder]').forEach((node) => {
+				const key = node.getAttribute('data-oi18n-placeholder');
+				if (key && t[key]) node.placeholder = t[key];
+			});
+			root.querySelectorAll('[data-oi18n-aria]').forEach((node) => {
+				const key = node.getAttribute('data-oi18n-aria');
+				if (key && t[key]) node.setAttribute('aria-label', t[key]);
+			});
+		}
+
+		const orderDialog = document.querySelector('#order-dialog');
+		const closeOrderDialog = document.querySelector('#order-dialog-close');
+		const orderDialogForm = document.querySelector('#order-dialog-form');
+		const orderModalName = document.querySelector('#order-modal-name');
+		const orderModalEmail = document.querySelector('#order-modal-email');
+		const orderModalPhone = document.querySelector('#order-modal-phone');
+		const orderModalMessage = document.querySelector('#order-modal-message');
+
+		function bindOpenTriggers() {
+			document.querySelectorAll('.js-open-order-dialog').forEach((btn) => {
+				btn.addEventListener('click', () => {
+					orderDialog?.showModal();
+					orderModalName?.focus();
+				});
+			});
+		}
+
+		bindOpenTriggers();
+
+		closeOrderDialog?.addEventListener('click', () => orderDialog?.close());
+
+		orderDialog?.addEventListener('click', (e) => {
+			if (e.target === orderDialog) orderDialog.close();
+		});
+
+		orderDialogForm?.addEventListener('submit', (event) => {
+			event.preventDefault();
+			const activeLang = document.documentElement.lang === 'en' ? 'en' : 'es';
+			const hasEmail = orderModalEmail && orderModalEmail.value.trim().length > 0;
+			const hasPhone = orderModalPhone && orderModalPhone.value.trim().length > 0;
+
+			if (!hasEmail && !hasPhone) {
+				alert(OI[activeLang].validation);
+				orderModalEmail?.focus();
+				return;
+			}
+
+			const lines = [
+				activeLang === 'en' ? 'Hello, I would like a custom bag.' : 'Hola, quiero hacer un pedido personalizado.',
+				`${activeLang === 'en' ? 'Name' : 'Nombre'}: ${orderModalName?.value?.trim() || '-'}`,
+				`Email: ${orderModalEmail?.value?.trim() || '-'}`,
+				`${activeLang === 'en' ? 'Phone' : 'Teléfono'}: ${orderModalPhone?.value?.trim() || '-'}`,
+				`${activeLang === 'en' ? 'Description' : 'Descripción'}: ${orderModalMessage?.value?.trim() || '-'}`,
+			];
+			const whatsappText = encodeURIComponent(lines.join('\n'));
+			const whatsappUrl = `https://wa.me/5493517417645?text=${whatsappText}`;
+			window.location.href = whatsappUrl;
+		});
+
+		function tryOpenFromQuery() {
+			const params = new URLSearchParams(window.location.search);
+			if (params.get('pedido') !== '1') return;
+			orderDialog?.showModal();
+			orderModalName?.focus();
+			const u = new URL(window.location.href);
+			u.searchParams.delete('pedido');
+			const q = u.searchParams.toString();
+			const clean = u.pathname + (q ? '?' + q : '') + u.hash;
+			window.history.replaceState({}, '', clean || '/');
+		}
+
+		function syncLang() {
+			const lang = localStorage.getItem('site-lang') === 'en' ? 'en' : 'es';
+			document.documentElement.lang = lang;
+			applyOrderDialogLang(lang);
+		}
+
+		syncLang();
+		tryOpenFromQuery();
+
+		window.addEventListener('CV_SITE_LANG', (e) => {
+			const lang = e.detail && e.detail.lang === 'en' ? 'en' : 'es';
+			applyOrderDialogLang(lang);
+		});
+	})();
+</script>

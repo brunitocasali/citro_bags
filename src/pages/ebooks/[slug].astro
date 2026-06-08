@@ -1,0 +1,25 @@
+---
+import EbooksShell from '../../components/ebooks/EbooksShell.astro';
+import EbookDetailView from '../../components/ebooks/EbookDetailView.astro';
+import { ebookDetailsBySlug, getPublishedSlugs } from '../../data/ebooks';
+
+export function getStaticPaths() {
+	return getPublishedSlugs()
+		.filter((slug) => Boolean(ebookDetailsBySlug[slug]))
+		.map((slug) => ({ params: { slug } }));
+}
+
+const { slug } = Astro.params;
+const detail = slug ? ebookDetailsBySlug[slug] : undefined;
+if (!detail || !slug) {
+	return Astro.redirect('/ebooks');
+}
+---
+
+<EbooksShell
+	title={detail.metaTitle}
+	description={detail.metaDescription}
+	pixelViewContent={{ id: slug, name: detail.hero.title }}
+>
+	<EbookDetailView detail={detail} slug={slug} />
+</EbooksShell>

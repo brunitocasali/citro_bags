@@ -1,0 +1,32 @@
+---
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { parseEbookLegacy } from '../../lib/ebookLegacy';
+
+const indexPath = join(process.cwd(), 'ebooks', 'index.html');
+const hasLegacy = existsSync(indexPath);
+
+let LegacyShell: (typeof import('../../layouts/EbookLegacyShell.astro'))['default'] | undefined;
+let legacyPayload: ReturnType<typeof parseEbookLegacy> | undefined;
+let Catalog: (typeof import('../../components/ebooks/EbooksCatalog.astro'))['default'] | undefined;
+
+if (hasLegacy) {
+	legacyPayload = parseEbookLegacy(readFileSync(indexPath, 'utf-8'));
+	LegacyShell = (await import('../../layouts/EbookLegacyShell.astro')).default;
+} else {
+	Catalog = (await import('../../components/ebooks/EbooksCatalog.astro')).default;
+}
+---
+
+{
+	hasLegacy && legacyPayload && LegacyShell ? (
+		<LegacyShell
+			title={legacyPayload.title}
+			description={legacyPayload.description}
+			headHtml={legacyPayload.headHtml}
+			bodyHtml={legacyPayload.bodyHtml}
+		/>
+	) : Catalog ? (
+		<Catalog />
+	) : null
+}
