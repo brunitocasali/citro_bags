@@ -10,7 +10,19 @@ import OrderDialog from '../components/OrderDialog.astro';
 	<header class="site-header">
 		<div class="site-header__inner">
 			<a class="site-header__brand" href="#inicio">Victoria Citro</a>
-			<nav class="site-header__nav" aria-label="Secciones">
+			<button
+				type="button"
+				class="site-header__menu-toggle"
+				id="site-nav-toggle"
+				aria-controls="primary-nav"
+				aria-expanded="false"
+				aria-label="Abrir menú"
+			>
+				<span class="site-header__menu-toggle-bar" aria-hidden="true"></span>
+				<span class="site-header__menu-toggle-bar" aria-hidden="true"></span>
+				<span class="site-header__menu-toggle-bar" aria-hidden="true"></span>
+			</button>
+			<nav class="site-header__nav" id="primary-nav" aria-label="Secciones">
 				<a href="#confianza" class="site-header__link" data-i18n="navTrust">Confianza</a>
 				<a href="#bolsos" class="site-header__link" data-i18n="navBags">Bolsos</a>
 				<a href="#proceso" class="site-header__link" data-i18n="navProcess">Proceso</a>
@@ -24,30 +36,32 @@ import OrderDialog from '../components/OrderDialog.astro';
 					rel="noreferrer"
 					data-i18n="navMurales">Murales</a>
 				<a href="/ebooks" class="site-header__ebook" data-i18n="navEbook">Guía duelo</a>
-				<button id="lang-toggle" class="site-header__lang" type="button" aria-label="Cambiar idioma">EN</button>
-				<a
-					class="site-header__icon"
-					href="https://www.instagram.com/victoria.citro/"
-					target="_blank"
-					rel="noreferrer"
-					aria-label="Instagram"
-				>
-					<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6"
-						><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"
-					/></svg>
-				</a>
-				<a
-					class="site-header__icon"
-					href="https://www.tiktok.com/@vIKICITROART"
-					target="_blank"
-					rel="noreferrer"
-					aria-label="TikTok"
-				>
-					<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"
-						><path
-							d="M17.5 6.5v9.2a4.3 4.3 0 01-4.1 4.3 4.3 4.3 0 01-3.4-1.7 4.2 4.2 0 01-.8-2.5h2.6c0 .6.5 1.1 1.1 1.1s1.1-.5 1.1-1.1V9.2h-2.1V6.5h2.1V4h2.6v2.5h2.1z"
-					/></svg>
-				</a>
+				<div class="site-header__nav-actions">
+					<button id="lang-toggle" class="site-header__lang" type="button" aria-label="Cambiar idioma">EN</button>
+					<a
+						class="site-header__icon"
+						href="https://www.instagram.com/victoria.citro/"
+						target="_blank"
+						rel="noreferrer"
+						aria-label="Instagram"
+					>
+						<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6"
+							><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"
+						/></svg>
+					</a>
+					<a
+						class="site-header__icon"
+						href="https://www.tiktok.com/@vIKICITROART"
+						target="_blank"
+						rel="noreferrer"
+						aria-label="TikTok"
+					>
+						<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"
+							><path
+								d="M17.5 6.5v9.2a4.3 4.3 0 01-4.1 4.3 4.3 4.3 0 01-3.4-1.7 4.2 4.2 0 01-.8-2.5h2.6c0 .6.5 1.1 1.1 1.1s1.1-.5 1.1-1.1V9.2h-2.1V6.5h2.1V4h2.6v2.5h2.1z"
+						/></svg>
+					</a>
+				</div>
 			</nav>
 		</div>
 	</header>
@@ -72,6 +86,10 @@ import OrderDialog from '../components/OrderDialog.astro';
 						</button>
 					</div>
 				</div>
+				<a href="#confianza" class="hero-scroll-hint">
+					<span class="hero-scroll-hint__text" data-i18n="scrollHint">Seguir leyendo</span>
+					<span class="hero-scroll-hint__chev" aria-hidden="true"></span>
+				</a>
 				<div class="awards-fog">
 					<p class="awards" data-i18n="awardsTitle">EXHIBIDA Y PREMIADA EN:</p>
 					<div class="awards-marquee" aria-live="polite">
@@ -298,8 +316,176 @@ import OrderDialog from '../components/OrderDialog.astro';
 
 	<OrderDialog />
 
+	<div
+		id="vc-autoscroll"
+		class="vc-autoscroll"
+		role="region"
+		aria-labelledby="vc-autoscroll-title"
+	>
+		<p id="vc-autoscroll-title" class="vc-autoscroll__title" data-i18n="autoscrollTitle">Recorrido automático</p>
+		<button type="button" id="vc-autoscroll-toggle" class="vc-autoscroll__toggle" aria-pressed="true"></button>
+		<div class="vc-autoscroll__volume" role="group" data-i18n-label="autoscrollSpeedLabel">
+			<button type="button" id="vc-autoscroll-slower" class="vc-autoscroll__step" data-i18n-aria="autoscrollSlower">−</button>
+			<input
+				type="range"
+				id="vc-autoscroll-speed"
+				class="vc-autoscroll__range"
+				min="25"
+				max="380"
+				step="5"
+				value="85"
+				aria-valuemin="25"
+				aria-valuemax="380"
+			/>
+			<button type="button" id="vc-autoscroll-faster" class="vc-autoscroll__step" data-i18n-aria="autoscrollFaster">+</button>
+		</div>
+		<p class="vc-autoscroll__hint" data-i18n="autoscrollHint">Tocá la página para frenar el recorrido.</p>
+	</div>
+
 	<script is:inline>
 		const langToggle = document.querySelector('#lang-toggle');
+		const siteHeader = document.querySelector('.site-header');
+		const navToggle = document.querySelector('#site-nav-toggle');
+		const primaryNav = document.getElementById('primary-nav');
+
+		const navMenuAria = (lang, open) =>
+			lang === 'en' ? (open ? 'Close menu' : 'Open menu') : open ? 'Cerrar menú' : 'Abrir menú';
+
+		const setNavOpen = (open) => {
+			if (!siteHeader || !navToggle) return;
+			if (open) siteHeader.classList.add('is-nav-open');
+			else siteHeader.classList.remove('is-nav-open');
+			const lang = document.documentElement.lang === 'en' ? 'en' : 'es';
+			navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+			navToggle.setAttribute('aria-label', navMenuAria(lang, open));
+			document.body.classList.toggle('is-nav-drawer-open', open);
+		};
+
+		navToggle?.addEventListener('click', () => {
+			const open = !siteHeader?.classList.contains('is-nav-open');
+			setNavOpen(open);
+		});
+
+		primaryNav?.querySelectorAll('a').forEach((a) => {
+			a.addEventListener('click', () => setNavOpen(false));
+		});
+
+		document.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape') setNavOpen(false);
+		});
+
+		document.addEventListener('click', (e) => {
+			if (!siteHeader?.classList.contains('is-nav-open')) return;
+			const t = e.target;
+			if (t instanceof Node && !siteHeader.contains(t)) setNavOpen(false);
+		});
+
+		document.querySelector('.site-header__brand')?.addEventListener('click', () => setNavOpen(false));
+
+		window.addEventListener('resize', () => {
+			if (window.matchMedia('(min-width: 769px)').matches) setNavOpen(false);
+		});
+
+		if (!window.__cvInPageScrollInit) {
+			window.__cvInPageScrollInit = true;
+
+			function __cvClickTargetEl(ev) {
+				let n = ev.target;
+				if (!n) return null;
+				if (n.nodeType === 3 && n.parentElement) n = n.parentElement;
+				return n instanceof Element ? n : null;
+			}
+
+			function __cvFindHashAnchor(ev) {
+				const path = typeof ev.composedPath === 'function' ? ev.composedPath() : null;
+				if (path && path.length) {
+					for (let i = 0; i < path.length; i++) {
+						const n = path[i];
+						if (n instanceof HTMLAnchorElement) {
+							const h = n.getAttribute('href');
+							if (h && h !== '#' && h.startsWith('#')) return n;
+						}
+					}
+				}
+				const el = __cvClickTargetEl(ev);
+				return el && el.closest ? el.closest('a[href^="#"]') : null;
+			}
+
+			function __cvHeaderScrollPad() {
+				const root = document.documentElement;
+				const spt = parseFloat(getComputedStyle(root).scrollPaddingTop);
+				if (Number.isFinite(spt) && spt > 0) return spt;
+				const h = document.querySelector('.site-header');
+				return h ? h.offsetHeight : 0;
+			}
+
+			function __cvYForElement(el) {
+				const rect = el.getBoundingClientRect();
+				const pad = __cvHeaderScrollPad();
+				const sy = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+				return Math.max(0, Math.round(rect.top + sy - pad));
+			}
+
+			function __cvReducedMotion() {
+				return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+			}
+
+			function __cvSetScrollY(y) {
+				y = Math.max(0, Math.round(y));
+				if (!Number.isFinite(y)) return;
+				window.scrollTo(0, y);
+				document.documentElement.scrollTop = y;
+				document.body.scrollTop = y;
+			}
+
+			function __cvScrollToY(targetY, instant) {
+				const startY = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+				const dist = targetY - startY;
+				if (Math.abs(dist) < 2) {
+					__cvSetScrollY(targetY);
+					return;
+				}
+				if (instant) {
+					__cvSetScrollY(targetY);
+					return;
+				}
+				const duration = Math.min(950, 380 + Math.abs(dist) * 0.42);
+				const t0 = performance.now();
+				function ease(t) {
+					return 1 - Math.pow(1 - t, 3);
+				}
+				function tick(now) {
+					const u = Math.min(1, (now - t0) / duration);
+					__cvSetScrollY(startY + dist * ease(u));
+					if (u < 1) requestAnimationFrame(tick);
+				}
+				requestAnimationFrame(tick);
+			}
+
+			function __cvInPageScrollHandler(e) {
+				if (e.defaultPrevented) return;
+				if (e.button !== 0) return;
+				if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+				const a = __cvFindHashAnchor(e);
+				if (!a || !(a instanceof HTMLAnchorElement)) return;
+				if (a.target === '_blank' || a.hasAttribute('download')) return;
+				const href = a.getAttribute('href');
+				if (!href || href === '#') return;
+				const id = decodeURIComponent(href.slice(1).split('?')[0]);
+				if (!id) return;
+				const target = document.getElementById(id);
+				if (!target) return;
+				e.preventDefault();
+				requestAnimationFrame(() => {
+					const y = __cvYForElement(target);
+					__cvScrollToY(y, __cvReducedMotion());
+				});
+				if (window.history.replaceState) window.history.replaceState(null, '', href);
+			}
+
+			document.addEventListener('click', __cvInPageScrollHandler, true);
+		}
+
 		const messages = {
 			es: {
 				navTrust: 'Confianza',
@@ -310,6 +496,7 @@ import OrderDialog from '../components/OrderDialog.astro';
 				navArtist: 'Artista',
 				navMurales: 'Murales',
 				navEbook: 'Guía duelo',
+				scrollHint: 'Seguir leyendo',
 				tagline: 'BOLSOS DE LUJO PINTADOS A MANO · MURALES Y ARTE',
 				ctaOrder: 'PIDE TU BOLSO PERSONALIZADO',
 				awardsTitle: 'EXHIBIDA Y PREMIADA EN:',
@@ -371,6 +558,13 @@ import OrderDialog from '../components/OrderDialog.astro';
 				closeLi3: 'Ideal para regalo y herencia emocional.',
 				closeCta1: 'Pedir mi bolso',
 				closeCta2: 'Guía sobre duelo de mascotas',
+				autoscrollTitle: 'Recorrido automático',
+				autoscrollPause: 'Pausar',
+				autoscrollResume: 'Reanudar',
+				autoscrollHint: 'Tocá o hacé scroll para frenar el recorrido.',
+				autoscrollSlower: 'Más lento',
+				autoscrollFaster: 'Más rápido',
+				autoscrollSpeedLabel: 'Velocidad del recorrido',
 			},
 			en: {
 				navTrust: 'Trust',
@@ -381,6 +575,7 @@ import OrderDialog from '../components/OrderDialog.astro';
 				navArtist: 'Artist',
 				navMurales: 'Murals',
 				navEbook: 'Pet guide',
+				scrollHint: 'Keep reading',
 				tagline: 'LUXURY HAND-PAINTED BAGS · MURALS & FINE ART',
 				ctaOrder: 'ORDER YOUR CUSTOM BAG',
 				awardsTitle: 'EXHIBITED AND AWARDED IN:',
@@ -436,6 +631,13 @@ import OrderDialog from '../components/OrderDialog.astro';
 				closeLi3: 'Perfect for gifts and emotional heirlooms.',
 				closeCta1: 'Order my bag',
 				closeCta2: 'Guide on pet loss (free resource)',
+				autoscrollTitle: 'Guided scroll',
+				autoscrollPause: 'Pause',
+				autoscrollResume: 'Resume',
+				autoscrollHint: 'Tap or scroll the page to stop.',
+				autoscrollSlower: 'Slower',
+				autoscrollFaster: 'Faster',
+				autoscrollSpeedLabel: 'Scroll speed',
 			},
 		};
 
@@ -451,7 +653,20 @@ import OrderDialog from '../components/OrderDialog.astro';
 				}
 				node.textContent = value;
 			});
+			document.querySelectorAll('[data-i18n-aria]').forEach((node) => {
+				const key = node.getAttribute('data-i18n-aria');
+				const value = messages[lang][key];
+				if (value) node.setAttribute('aria-label', value);
+			});
+			document.querySelectorAll('[data-i18n-label]').forEach((node) => {
+				const key = node.getAttribute('data-i18n-label');
+				const value = messages[lang][key];
+				if (value) node.setAttribute('aria-label', value);
+			});
 			if (langToggle) langToggle.textContent = lang === 'es' ? 'EN' : 'ES';
+			if (navToggle && siteHeader && !siteHeader.classList.contains('is-nav-open')) {
+				navToggle.setAttribute('aria-label', navMenuAria(lang, false));
+			}
 			localStorage.setItem('site-lang', lang);
 			window.dispatchEvent(new CustomEvent('CV_SITE_LANG', { detail: { lang } }));
 		};
@@ -463,5 +678,154 @@ import OrderDialog from '../components/OrderDialog.astro';
 			const next = document.documentElement.lang === 'es' ? 'en' : 'es';
 			applyLanguage(next);
 		});
+
+		(function initVcAutoscroll() {
+			const root = document.getElementById('vc-autoscroll');
+			const toggle = document.getElementById('vc-autoscroll-toggle');
+			const slider = document.getElementById('vc-autoscroll-speed');
+			const slower = document.getElementById('vc-autoscroll-slower');
+			const faster = document.getElementById('vc-autoscroll-faster');
+			if (!root || !toggle || !slider || !slower || !faster) return;
+
+			const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+			if (reduce) {
+				root.hidden = true;
+				return;
+			}
+
+			let autoRunning = false;
+			let rafId = 0;
+			let lastTs = 0;
+			let speed = parseInt(slider.value, 10) || 85;
+
+			function maxY() {
+				return Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+			}
+
+			function setScrollY(y) {
+				const my = maxY();
+				y = Math.max(0, Math.min(my, Math.round(y)));
+				window.scrollTo(0, y);
+				document.documentElement.scrollTop = y;
+				document.body.scrollTop = y;
+			}
+
+			function syncToggle() {
+				const lang = document.documentElement.lang === 'en' ? 'en' : 'es';
+				toggle.textContent = autoRunning ? messages[lang].autoscrollPause : messages[lang].autoscrollResume;
+				toggle.setAttribute('aria-pressed', autoRunning ? 'true' : 'false');
+			}
+
+			function stopAuto() {
+				autoRunning = false;
+				lastTs = 0;
+				if (rafId) cancelAnimationFrame(rafId);
+				rafId = 0;
+				syncToggle();
+			}
+
+			function tick(ts) {
+				if (!autoRunning) return;
+				if (!lastTs) {
+					lastTs = ts;
+					rafId = requestAnimationFrame(tick);
+					return;
+				}
+				const dt = Math.min(80, ts - lastTs) / 1000;
+				lastTs = ts;
+				const my = maxY();
+				const y0 = window.scrollY || document.documentElement.scrollTop || 0;
+				if (y0 >= my - 1.5) {
+					stopAuto();
+					return;
+				}
+				setScrollY(y0 + speed * dt);
+				rafId = requestAnimationFrame(tick);
+			}
+
+			function startAuto() {
+				if (reduce) return;
+				if (window.scrollY >= maxY() - 2) return;
+				autoRunning = true;
+				lastTs = 0;
+				if (rafId) cancelAnimationFrame(rafId);
+				syncToggle();
+				rafId = requestAnimationFrame(tick);
+			}
+
+			toggle.addEventListener('click', (e) => {
+				e.stopPropagation();
+				if (autoRunning) stopAuto();
+				else startAuto();
+			});
+
+			function bump(delta) {
+				const mn = parseInt(slider.getAttribute('min'), 10) || 25;
+				const mx = parseInt(slider.getAttribute('max'), 10) || 380;
+				speed = Math.min(mx, Math.max(mn, speed + delta));
+				slider.value = String(speed);
+				try {
+					localStorage.setItem('vc-autoscroll-speed', String(speed));
+				} catch (_) {}
+			}
+
+			slider.addEventListener('click', (e) => e.stopPropagation());
+			slider.addEventListener('input', () => {
+				speed = parseInt(slider.value, 10) || 85;
+				try {
+					localStorage.setItem('vc-autoscroll-speed', String(speed));
+				} catch (_) {}
+			});
+
+			slower.addEventListener('click', (e) => {
+				e.stopPropagation();
+				bump(-25);
+			});
+			faster.addEventListener('click', (e) => {
+				e.stopPropagation();
+				bump(25);
+			});
+
+			function userInterrupt(e) {
+				if (!autoRunning) return;
+				const t = e.target;
+				if (!t || root.contains(t)) return;
+				if (t.closest && t.closest('dialog[open]')) {
+					stopAuto();
+					return;
+				}
+				if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable) return;
+				stopAuto();
+			}
+
+			['wheel', 'touchstart', 'mousedown', 'pointerdown', 'keydown'].forEach((ev) => {
+				window.addEventListener(ev, userInterrupt, { capture: true, passive: true });
+			});
+
+			const orderDlg = document.querySelector('#order-dialog');
+			orderDlg?.addEventListener('toggle', () => {
+				if (orderDlg.open) stopAuto();
+			});
+
+			try {
+				const saved = localStorage.getItem('vc-autoscroll-speed');
+				if (saved) {
+					const v = parseInt(saved, 10);
+					const mn = parseInt(slider.getAttribute('min'), 10);
+					const mx = parseInt(slider.getAttribute('max'), 10);
+					if (Number.isFinite(v) && v >= mn && v <= mx) {
+						speed = v;
+						slider.value = String(v);
+					}
+				}
+			} catch (_) {}
+
+			window.addEventListener('CV_SITE_LANG', () => syncToggle());
+
+			syncToggle();
+			requestAnimationFrame(() => {
+				requestAnimationFrame(startAuto);
+			});
+		})();
 	</script>
 </Layout>
