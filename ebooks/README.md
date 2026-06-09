@@ -28,11 +28,11 @@ npm run sync:ebooks
 
 ## Estado actual
 
-La landing en **`ebooks/index.html`** reproduce la guía **«Cuando a los ángeles les devuelven las alas»** (secciones, textos y estilo de las capturas): hero, empatía, sanar con amor, capítulos y formulario a WhatsApp. Los mockups en **`ebooks/images/*.svg`** son sustitutos hasta que pegues tus JPG/WebP reales.
+La landing en **`ebooks/index.html`** reproduce la guía **«Cuando a los ángeles les devuelven las alas»** (secciones, textos y estilo de las capturas): hero, empatía, sanar con amor, capítulos y formulario a WhatsApp. Las fotos reales viven en **`public/ebook/`** y se referencian con rutas absolutas `/ebook/...`.
 
-### Imágenes (mockups)
+### Imágenes
 
-En `ebooks/images/` hay **SVGs de apoyo** para la portada, la foto de la sección «Sanar con amor» y el libro abierto. Para que coincida al 100% con tus renders, reemplazá esos archivos por **JPG o WebP** con el **mismo nombre de archivo** y actualizá las rutas en `index.html` si usás otra extensión (por ejemplo `mockup-portada.jpg`).
+Archivos en **`public/ebook/`** (portada, kit de duelo, carta de despedida, favicon). El sync `npm run sync:ebooks` **no** borra esa carpeta.
 
 ## PDFs públicos
 

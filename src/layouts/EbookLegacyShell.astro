@@ -19,8 +19,8 @@ const { title, description = '', headHtml, bodyHtml } = Astro.props;
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="description" content={description} />
-		<meta name="generator" content={Astro.generator} />
-		<link rel="icon" href="/favicon.ico" />
+		<link rel="icon" href="/ebook/favicon-vc.png" type="image/png" />
+		<link rel="apple-touch-icon" href="/ebook/favicon-vc.png" />
 		<title>{title}</title>
 		<Fragment set:html={headHtml} />
 	</head>
