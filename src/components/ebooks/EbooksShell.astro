@@ -2,6 +2,7 @@
 import Layout from '../../layouts/Layout.astro';
 import OrderDialog from '../OrderDialog.astro';
 import MetaPixelEbooks from './MetaPixelEbooks.astro';
+import VcAutoscroll from '../VcAutoscroll.astro';
 import type { PixelViewContent } from '../../config/metaPixelEbooks';
 import '../../styles/ebooks.css';
 
@@ -30,6 +31,7 @@ const { title, description, pixelViewContent } = Astro.props;
 		<slot />
 	</div>
 	<OrderDialog />
+	<VcAutoscroll />
 	<script is:inline>
 		(function () {
 			const ebLang = document.querySelector('#eb-lang-toggle');

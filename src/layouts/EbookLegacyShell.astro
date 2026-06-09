@@ -3,6 +3,8 @@
  * Documento HTML completo para la landing legacy de /ebooks
  * (sin global.css de la home para no pisar estilos del diseño original).
  */
+import VcAutoscroll from '../components/VcAutoscroll.astro';
+
 export interface Props {
 	title: string;
 	description?: string;
@@ -26,5 +28,6 @@ const { title, description = '', headHtml, bodyHtml } = Astro.props;
 	</head>
 	<body>
 		<div id="ebook-legacy-root" set:html={bodyHtml} />
+		<VcAutoscroll />
 	</body>
 </html>
