@@ -94,6 +94,12 @@
 		let lastTs = 0;
 		let speed = parseInt(slider.value, 10) || 85;
 
+		/** En móvil el alto útil suele ser 0 al primer frame; sin esto nunca arranca (0 >= maxY-2). */
+		const MIN_SCROLL_RANGE = 12;
+		let savedHtmlScrollBehavior = '';
+		let savedBodyScrollBehavior = '';
+		let instantScrollLock = 0;
+
 		function scrollEl() {
 			return document.scrollingElement || document.documentElement;
 		}
@@ -122,8 +128,29 @@
 			y = Math.max(0, Math.min(my, Math.round(y)));
 			const se = scrollEl();
 			se.scrollTop = y;
-			window.scrollTo(0, y);
+			try {
+				window.scrollTo({ left: 0, top: y, behavior: 'instant' });
+			} catch (_) {
+				window.scrollTo(0, y);
+			}
 			if (document.body && document.body !== se) document.body.scrollTop = y;
+		}
+
+		function applyInstantScrollCss() {
+			if (instantScrollLock === 0) {
+				savedHtmlScrollBehavior = document.documentElement.style.scrollBehavior;
+				savedBodyScrollBehavior = document.body ? document.body.style.scrollBehavior : '';
+			}
+			instantScrollLock++;
+			document.documentElement.style.scrollBehavior = 'auto';
+			if (document.body) document.body.style.scrollBehavior = 'auto';
+		}
+
+		function restoreScrollBehaviorCss() {
+			if (instantScrollLock > 0) instantScrollLock--;
+			if (instantScrollLock !== 0) return;
+			document.documentElement.style.scrollBehavior = savedHtmlScrollBehavior;
+			if (document.body) document.body.style.scrollBehavior = savedBodyScrollBehavior;
 		}
 
 		function syncToggle() {
@@ -137,6 +164,7 @@
 			lastTs = 0;
 			if (rafId) cancelAnimationFrame(rafId);
 			rafId = 0;
+			restoreScrollBehaviorCss();
 			syncToggle();
 		}
 
@@ -151,6 +179,10 @@
 			lastTs = ts;
 			const my = maxY();
 			const y0 = currentY();
+			if (my < MIN_SCROLL_RANGE) {
+				rafId = requestAnimationFrame(tick);
+				return;
+			}
 			if (y0 >= my - 1.5) {
 				stopAuto();
 				return;
@@ -161,8 +193,11 @@
 
 		function startAuto() {
 			if (reduce) return;
-			if (currentY() >= maxY() - 2) return;
+			const my = maxY();
+			if (my < MIN_SCROLL_RANGE) return;
+			if (currentY() >= my - 2) return;
 			autoRunning = true;
+			applyInstantScrollCss();
 			lastTs = 0;
 			if (rafId) cancelAnimationFrame(rafId);
 			syncToggle();
@@ -263,9 +298,34 @@
 		window.addEventListener('CV_EB_LANG', onLang);
 
 		refreshCopy();
+
+		let bootFrames = 0;
+		const BOOT_MAX_FRAMES = 180;
+		function tryBootAutoscroll() {
+			if (reduce) return;
+			if (autoRunning) return;
+			bootFrames++;
+			const my = maxY();
+			if (my >= MIN_SCROLL_RANGE && currentY() < my - 2) {
+				startAuto();
+				return;
+			}
+			if (bootFrames < BOOT_MAX_FRAMES) requestAnimationFrame(tryBootAutoscroll);
+		}
+
 		requestAnimationFrame(() => {
-			requestAnimationFrame(startAuto);
+			requestAnimationFrame(tryBootAutoscroll);
 		});
+
+		window.addEventListener(
+			'load',
+			() => {
+				if (reduce || autoRunning) return;
+				const my = maxY();
+				if (my >= MIN_SCROLL_RANGE && currentY() < my - 2) startAuto();
+			},
+			{ once: true }
+		);
 	})();
 </script>
 
