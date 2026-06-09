@@ -68,8 +68,8 @@ export function parseEbookLegacy(raw: string): EbookLegacyPayload {
   const bodyHtml = rewriteAttributes(bodyInner);
 
   return {
-    title: (titleMatch?.[1] ?? 'Ebooks | Citro Victoria').trim(),
-    description: (descMatch?.[1] ?? ogDesc?.[1] ?? 'Citro Victoria').trim(),
+    title: (titleMatch?.[1] ?? 'Ebooks | Victoria Citro').trim(),
+    description: (descMatch?.[1] ?? ogDesc?.[1] ?? 'Victoria Citro').trim(),
     headHtml,
     bodyHtml,
   };
