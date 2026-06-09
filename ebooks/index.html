@@ -26,7 +26,12 @@
             <span class="vc-brand__name">Victoria Citro</span>
             <span class="vc-brand__tag">Arte &amp; duelo</span>
           </a>
-          <a class="vc-btn vc-btn--ghost" href="#descarga">Descargar la guía</a>
+          <a
+            class="vc-btn vc-btn--ghost"
+            href="https://alasparasiempre.impultienda.ar/"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Descargar la guía</a>
         </div>
       </header>
 
@@ -44,7 +49,12 @@
                 Porque perder una mascota nunca es «solo perder un animal». Es despedir una parte de tu historia, de tu
                 rutina y de tu corazón.
               </p>
-              <a class="vc-btn vc-btn--solid" href="#descarga">Descargar la guía ahora →</a>
+              <a
+                class="vc-btn vc-btn--solid"
+                href="https://alasparasiempre.impultienda.ar/"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Descargar la guía ahora →</a>
               <p class="vc-hero-main__meta">Lectura inmediata · Formato digital · Acceso para siempre</p>
             </div>
             <figure class="vc-hero-main__visual">
@@ -245,7 +255,12 @@
                   Sentir más calma y conexión emocional
                 </li>
               </ul>
-              <a class="vc-btn vc-btn--solid" href="#descarga">Quiero empezar a sanar →</a>
+              <a
+                class="vc-btn vc-btn--solid"
+                href="https://alasparasiempre.impultienda.ar/"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Quiero empezar a sanar →</a>
             </div>
             <figure class="vc-sanar__visual">
               <img
@@ -313,20 +328,17 @@
         </div>
       </section>
 
-      <!-- Lead -->
-      <section class="vc-download" id="descarga" aria-labelledby="vc-download-title">
+      <!-- CTA final → tienda -->
+      <section class="vc-download" id="descarga" aria-label="Comprar la guía">
         <div class="vc-shell">
           <div class="vc-download__box">
-            <h2 id="vc-download-title">Recibí el acceso a la guía</h2>
-            <p class="vc-download__hint">Dejá tus datos y te contactamos por WhatsApp con el enlace.</p>
-            <form class="vc-form" id="vc-lead-form">
-              <label for="vc-name">Nombre</label>
-              <input id="vc-name" name="name" type="text" autocomplete="name" required />
-              <label for="vc-email">Email</label>
-              <input id="vc-email" name="email" type="email" autocomplete="email" required />
-              <button class="vc-btn vc-btn--solid" type="submit">Enviar solicitud</button>
-              <p class="vc-form__note">Sin spam. Podés pedir la baja cuando quieras.</p>
-            </form>
+            <a
+              class="vc-btn vc-btn--solid vc-download__cta"
+              href="https://alasparasiempre.impultienda.ar/"
+              target="_blank"
+              rel="noopener noreferrer"
+              >Recibí el acceso a la guía →</a>
+            <p class="vc-download__hint">Comprá con pago seguro y descargá al instante en la tienda oficial.</p>
           </div>
         </div>
       </section>
@@ -336,27 +348,5 @@
         <p><a href="/">Volver al inicio</a> · <a href="/order">Pedir un bolso pintado a mano</a></p>
       </footer>
     </div>
-
-    <script>
-      (function () {
-        var form = document.getElementById('vc-lead-form');
-        var nameInput = document.getElementById('vc-name');
-        var emailInput = document.getElementById('vc-email');
-        var waBase = 'https://wa.me/5493517417645?text=';
-        if (!form) return;
-        form.addEventListener('submit', function (e) {
-          e.preventDefault();
-          var name = (nameInput && nameInput.value && nameInput.value.trim()) || '';
-          var email = (emailInput && emailInput.value && emailInput.value.trim()) || '';
-          var text = encodeURIComponent(
-            'Hola Victoria, quiero la guía «Cuando a los ángeles les devuelven las alas».\nNombre: ' +
-              name +
-              '\nEmail: ' +
-              email,
-          );
-          window.location.href = waBase + text;
-        });
-      })();
-    </script>
   </body>
 </html>

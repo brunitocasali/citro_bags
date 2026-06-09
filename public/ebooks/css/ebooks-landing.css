@@ -35,6 +35,7 @@ body {
   font-size: 1rem;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 img {
@@ -45,6 +46,7 @@ img {
 
 .vc-page {
   min-height: 100vh;
+  overflow-x: clip;
 }
 
 /* —— Header —— */
@@ -60,7 +62,7 @@ img {
 .vc-header__inner {
   max-width: 1180px;
   margin: 0 auto;
-  padding: 1.1rem 1.5rem;
+  padding: 1.1rem clamp(0.75rem, 4vw, 1.5rem);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -150,7 +152,8 @@ img {
 .vc-shell {
   max-width: 1180px;
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: 0 clamp(0.875rem, 4vw, 1.5rem);
+  width: 100%;
 }
 
 /* —— Hero principal —— */
@@ -164,6 +167,12 @@ img {
   grid-template-columns: 1.05fr 0.95fr;
   gap: clamp(2rem, 5vw, 4rem);
   align-items: center;
+}
+
+.vc-hero-main__grid > *,
+.vc-sanar__grid > *,
+.vc-inside__grid > * {
+  min-width: 0;
 }
 
 .vc-kicker {
@@ -461,7 +470,16 @@ img {
 .vc-download__hint {
   font-size: 0.9rem;
   color: var(--vc-muted);
-  margin: 0 0 1.5rem;
+  margin: 1rem 0 0;
+}
+
+.vc-download__cta {
+  display: inline-flex;
+  width: 100%;
+  max-width: 22rem;
+  margin: 0 auto;
+  justify-content: center;
+  text-align: center;
 }
 
 .vc-form {
@@ -538,15 +556,15 @@ img {
     grid-template-columns: 1fr;
   }
 
+  .vc-hero-main h1 {
+    max-width: none;
+  }
+
   .vc-hero-main__visual,
   .vc-sanar__visual,
   .vc-inside__visual {
     justify-self: center;
-    max-width: 400px;
-  }
-
-  .vc-hero-main h1 {
-    max-width: none;
+    max-width: min(400px, 100%);
   }
 
   .vc-card-grid {
@@ -556,11 +574,40 @@ img {
 
 @media (max-width: 520px) {
   .vc-header__inner {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.85rem clamp(0.75rem, 4vw, 1.25rem);
+  }
+
+  .vc-brand {
+    flex: 1;
+    min-width: 0;
   }
 
   .vc-btn--ghost {
+    width: auto;
+    flex-shrink: 0;
+    padding: 0.65rem 1rem;
+    font-size: 0.62rem;
+  }
+
+  .vc-hero-main h1 {
+    font-size: clamp(1.55rem, 6.5vw, 2.1rem);
+    word-break: break-word;
+    hyphens: auto;
+  }
+
+  .vc-btn--solid {
     width: 100%;
+    max-width: 100%;
+    justify-content: center;
+  }
+
+  .vc-section-head h2 {
+    word-break: break-word;
+    hyphens: auto;
   }
 }
