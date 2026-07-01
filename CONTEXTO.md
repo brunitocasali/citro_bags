@@ -5,6 +5,49 @@
 
 ---
 
+## 0. ⭐ EMPEZÁ POR ACÁ (si NO sabés programar)
+
+Tranqui: **no hace falta saber programar**. Lo más importante es entender esto:
+
+> 💬 **El truco:** en Cursor tenés un asistente de inteligencia artificial (el panel de chat de la derecha).
+> Le escribís en español lo que querés y **él hace el trabajo por vos**. No tenés que escribir código.
+
+### Cómo pedirle cosas a Cursor
+1. Abrí el proyecto en Cursor (Bruno te pasa la carpeta o el link de GitHub).
+2. En el panel de chat de la derecha, escribí lo que necesitás, como si le hablaras a una persona. Ejemplos:
+   - *"Levantá el sitio para verlo en el navegador."*
+   - *"Cambiá el precio del ebook principal a 18.990."*
+   - *"Cambiá la foto de la autora por esta"* (y le arrastrás la foto al chat).
+   - *"Cambiá el link de Instagram por @victoriacitro."*
+3. Cursor te muestra qué va a cambiar; vos le decís que sí. Listo.
+
+👉 **Si algo no te sale, copiá y pegá este archivo (CONTEXTO.md) en el chat y pedile ayuda.** El asistente ya entiende todo el proyecto.
+
+### ✅ Tu checklist (todo lo que tenés que hacer)
+
+Marcá a medida que avances:
+
+- [ ] **1. Abrir el proyecto en Cursor** (te lo pasa Bruno).
+- [ ] **2. Pedirle al chat de Cursor:** *"Instalá todo lo necesario para correr este proyecto."* (Él corre los comandos; vos solo aceptás.)
+- [ ] **3. Pedirle:** *"Levantá el sitio y el servidor de pagos para poder verlo."* Después abrís **http://localhost:4321/ebooks** en el navegador.
+- [ ] **4. Cuenta de Resend (para los emails):** entrá a [resend.com](https://resend.com), creá la cuenta, generá una **API Key** y **verificá el dominio** `victoriacitro.net`. (Guía visual: hay tutoriales en YouTube "Resend verify domain".) Cuando tengas la API Key, pegásela a Bruno o pedile al chat de Cursor: *"Guardá esta API Key de Resend en la configuración."*
+- [ ] **5. Revisar el contenido** de la página (textos, precios, fotos, testimonios, link de Instagram) y pedirle a Cursor los cambios que quieras.
+- [ ] **6. Avisarle a Bruno** cuando esté todo revisado, para publicarlo (deploy).
+
+### 🙅 Qué NO tenés que hacer
+- No tenés que escribir código a mano.
+- No borres carpetas ni archivos "porque sí". Si dudás, preguntале al chat.
+- No compartas contraseñas ni claves (las del archivo `.env`) por chat público ni redes.
+
+### 🆘 Si algo se rompe
+Escribíle al chat de Cursor: *"Me salió este error: (pegás el error). ¿Cómo lo arreglo?"*. Y si no, le mandás captura a Bruno. **Nada se rompe para siempre**, siempre se puede volver atrás.
+
+---
+
+> El resto del documento (secciones 1 a 8) es más técnico. **No hace falta que lo entiendas todo**: está para el asistente de Curso y para Bruno. Podés leerlo por arriba para tener una idea general.
+
+---
+
 ## 1. Qué es este proyecto
 
 Es el sitio web de **Victoria Citro** (arte + bolsos pintados a mano) hecho con **Astro**.
