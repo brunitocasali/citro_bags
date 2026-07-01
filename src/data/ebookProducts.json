@@ -1,0 +1,74 @@
+[
+  {
+    "slug": "angeles-alas",
+    "title": "Cuando a los ángeles les devuelven las alas",
+    "description": "La guía principal para atravesar el duelo de tu compañero de vida.",
+    "file": "angeles-alas.pdf",
+    "cover": "/ebook/covers/angeles-alas.png",
+    "kind": "main",
+    "priceArs": 16990,
+    "regularPriceArs": 84950,
+    "upsellPriceArs": null,
+    "available": true
+  },
+  {
+    "slug": "rituales",
+    "title": "Rituales para días difíciles",
+    "description": "Ideas simples para atravesar fechas señaladas y los gatillos del día a día.",
+    "file": "rituales.pdf",
+    "cover": "/ebook/covers/rituales.webp",
+    "kind": "bonus",
+    "priceArs": 0,
+    "regularPriceArs": 14990,
+    "upsellPriceArs": null,
+    "available": true
+  },
+  {
+    "slug": "guia-carta",
+    "title": "Guía para escribir tu carta",
+    "description": "Plantillas y prompts para escribirle esa carta que quedó pendiente.",
+    "file": "guia-carta.pdf",
+    "cover": "/ebook/covers/guia-carta.webp",
+    "kind": "bonus",
+    "priceArs": 0,
+    "regularPriceArs": 3990,
+    "upsellPriceArs": null,
+    "available": true
+  },
+  {
+    "slug": "libro-de-su-vida",
+    "title": "El Libro de su vida",
+    "description": "Textos guiados para transformar la culpa en gratitud y memoria amorosa.",
+    "file": "libro-de-su-vida.pdf",
+    "cover": "/ebook/covers/libro-de-su-vida.png",
+    "kind": "bonus",
+    "priceArs": 0,
+    "regularPriceArs": 7990,
+    "upsellPriceArs": null,
+    "available": true
+  },
+  {
+    "slug": "libro-de-su-vida-gatos",
+    "title": "El Libro de Su Vida — Edición Gatos",
+    "description": "Un ebook complementario para gatos, con herramientas para escribir lo maravilloso que fue esa vida junto a ellos.",
+    "file": "libro-de-su-vida-gatos.pdf",
+    "cover": "/ebook/covers/libro-de-su-vida-gatos.png",
+    "kind": "upsell",
+    "priceArs": null,
+    "regularPriceArs": 5990,
+    "upsellPriceArs": 2990,
+    "available": true
+  },
+  {
+    "slug": "memoria-viva",
+    "title": "Memoria viva: proyectos para honrar a tu compañero",
+    "description": "Ideas prácticas para crear homenajes duraderos: del objeto con significado a rituales personalizables.",
+    "file": "memoria-viva.pdf",
+    "cover": "/ebook/covers/memoria-viva.png",
+    "kind": "upsell",
+    "priceArs": null,
+    "regularPriceArs": 9990,
+    "upsellPriceArs": 4990,
+    "available": true
+  }
+]

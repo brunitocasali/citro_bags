@@ -1,0 +1,235 @@
+/* Carrito / Tu pedido — Victoria Citro */
+.vc-cart {
+  background: linear-gradient(180deg, var(--vc-bg-soft) 0%, var(--vc-bg-hero) 100%);
+  min-height: 80vh;
+  padding: clamp(1.5rem, 5vw, 3rem) clamp(0.875rem, 4vw, 1.5rem);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.vc-cart__box {
+  width: 100%;
+  max-width: 560px;
+  background: var(--vc-card);
+  border: 1px solid var(--vc-line);
+  border-radius: 22px;
+  box-shadow: 0 24px 60px rgba(61, 52, 45, 0.14);
+  padding: clamp(1.25rem, 4vw, 2rem);
+}
+
+.vc-cart__head {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.vc-cart__head h1 {
+  font-family: var(--vc-serif);
+  font-weight: 500;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  color: var(--vc-text-2);
+  margin: 0 0 0.25rem;
+}
+
+.vc-cart__head p {
+  margin: 0;
+  color: var(--vc-muted);
+  font-size: 0.9rem;
+}
+
+/* Ítem principal */
+.vc-cart__main {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--vc-line);
+  border-radius: 16px;
+  background: var(--vc-bg-cream);
+}
+
+.vc-cart__main img {
+  border-radius: 8px;
+  box-shadow: 0 6px 16px rgba(61, 52, 45, 0.2);
+  flex-shrink: 0;
+  width: 70px;
+  height: auto;
+}
+
+.vc-cart__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.vc-cart__info strong {
+  display: block;
+  color: var(--vc-text-2);
+  font-size: 0.98rem;
+  line-height: 1.3;
+}
+
+.vc-cart__tag {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--vc-muted);
+  margin-top: 0.2rem;
+  line-height: 1.35;
+}
+
+.vc-cart__price {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.vc-cart__price s {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--vc-tan);
+}
+
+.vc-cart__price b {
+  font-size: 1.05rem;
+  color: var(--vc-text-2);
+}
+
+/* Etiquetas de sección */
+.vc-cart__label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--vc-tan);
+  margin: 1.5rem 0 0.75rem;
+}
+
+/* Bonos incluidos */
+.vc-cart__bonus {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  font-size: 0.88rem;
+  color: var(--vc-text-2);
+}
+
+.vc-cart__bonus img {
+  border-radius: 5px;
+  box-shadow: 0 2px 8px rgba(61, 52, 45, 0.18);
+  flex-shrink: 0;
+  width: 42px;
+  height: auto;
+}
+
+.vc-cart__bonus span {
+  flex: 1;
+  min-width: 0;
+}
+
+.vc-cart__bonus em {
+  font-style: normal;
+  font-weight: 700;
+  color: #2e9e6b;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.vc-cart__bonus em s {
+  color: var(--vc-tan);
+  font-weight: 400;
+  margin-right: 0.35rem;
+}
+
+/* Order bumps (upsells) */
+.vc-cart__upsell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem;
+  margin-bottom: 0.6rem;
+  border: 1.5px solid var(--vc-line);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.vc-cart__upsell:hover {
+  border-color: var(--vc-accent);
+}
+
+.vc-cart__upsell:has(.vc-upsell:checked) {
+  border-color: var(--vc-accent);
+  background: rgba(166, 139, 103, 0.08);
+}
+
+.vc-cart__upsell input[type='checkbox'] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--vc-accent);
+  flex-shrink: 0;
+}
+
+.vc-cart__upsell img {
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(61, 52, 45, 0.18);
+  flex-shrink: 0;
+  width: 56px;
+  height: auto;
+}
+
+/* Total */
+.vc-cart__total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 2px solid var(--vc-line);
+  font-size: 1.15rem;
+  color: var(--vc-text-2);
+}
+
+.vc-cart__total b {
+  font-size: 1.5rem;
+  font-family: var(--vc-serif);
+}
+
+/* Email + botón */
+.vc-cart__emaillabel {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--vc-muted);
+  margin: 1.5rem 0 0.4rem;
+}
+
+.vc-cart__box input[type='email'] {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(74, 55, 40, 0.2);
+  font: inherit;
+  background: #fff;
+  color: var(--vc-text-2);
+  margin-bottom: 1rem;
+}
+
+.vc-cart__box input[type='email']:focus {
+  outline: none;
+  border-color: var(--vc-accent);
+  box-shadow: 0 0 0 3px rgba(166, 139, 103, 0.2);
+}
+
+.vc-cart__box .vc-btn--solid {
+  width: 100%;
+  justify-content: center;
+}
+
+.vc-cart__note {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--vc-muted);
+  margin: 1rem 0 0;
+  line-height: 1.45;
+}

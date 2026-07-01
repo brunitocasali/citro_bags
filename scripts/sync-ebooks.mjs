@@ -14,6 +14,12 @@ const destDir = path.join(root, 'public', 'ebooks');
 function shouldSkip(relPosix) {
   if (relPosix === 'README.md') return true;
   if (relPosix === 'index.html') return true;
+  // Seguridad: nunca publicar PDFs (contenido pago). Deben vivir en private-ebooks/
+  // y entregarse solo por el backend tras confirmar el pago.
+  if (relPosix.toLowerCase().endsWith('.pdf')) {
+    console.warn(`[sync-ebooks] ⚠  Omitido PDF (contenido pago, no se publica): ${relPosix}`);
+    return true;
+  }
   return false;
 }
 

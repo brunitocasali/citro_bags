@@ -28,7 +28,7 @@
           </a>
           <a
             class="vc-btn vc-btn--ghost"
-            href="https://alasparasiempre.impultienda.ar/"
+            href="{{checkoutUrl}}"
             target="_blank"
             rel="noopener noreferrer"
             >Descargar la guía</a>
@@ -51,7 +51,7 @@
               </p>
               <a
                 class="vc-btn vc-btn--solid"
-                href="https://alasparasiempre.impultienda.ar/"
+                href="{{checkoutUrl}}"
                 target="_blank"
                 rel="noopener noreferrer"
                 >Descargar la guía ahora →</a>
@@ -67,6 +67,73 @@
                 decoding="async"
               />
             </figure>
+          </div>
+        </div>
+      </section>
+
+      <!-- Mini-historia visual: secuencia emocional -->
+      <section class="vc-seq" aria-labelledby="vc-seq-title">
+        <div class="vc-shell">
+          <div class="vc-section-head">
+            <p class="vc-section-head__label">Una historia que quizás conocés</p>
+            <h2 id="vc-seq-title">Cuando se van, el amor se queda.</h2>
+          </div>
+        </div>
+        <div class="vc-seq__track">
+          <figure class="vc-seq__item">
+            <img
+              src="/ebook/secuencia/01-collar.png"
+              alt="El collar de la mascota colgado junto a la ventana. «Hay cosas que siguen ahí… aunque quien las usaba ya no esté.»"
+              loading="lazy"
+              decoding="async"
+            />
+          </figure>
+
+          <figure class="vc-seq__item">
+            <img
+              src="/ebook/secuencia/02-plato.png"
+              alt="El plato de comida vacío en el piso. «El plato sigue vacío. Cada comida es un recuerdo más.»"
+              loading="lazy"
+              decoding="async"
+            />
+          </figure>
+
+          <figure class="vc-seq__item">
+            <img
+              src="/ebook/secuencia/03-cama.png"
+              alt="La camita de la mascota vacía junto a la ventana. «El silencio también es extrañarlo.»"
+              loading="lazy"
+              decoding="async"
+            />
+          </figure>
+
+          <figure class="vc-seq__item">
+            <img
+              src="/ebook/secuencia/04-ventana.png"
+              alt="El cojín donde esperaba, sobre el alféizar de la ventana. «Su camita sigue en el mismo lugar. Porque el amor no entiende de ausencias.»"
+              loading="lazy"
+              decoding="async"
+            />
+          </figure>
+
+          <figure class="vc-seq__item">
+            <img
+              src="/ebook/secuencia/05-abrazo.png"
+              alt="Una persona abraza un cojín mirando por la ventana. «Hay momentos que dan ganas de abrazar el recuerdo. Y dejar que el corazón hable.»"
+              loading="lazy"
+              decoding="async"
+            />
+          </figure>
+        </div>
+        <div class="vc-shell">
+          <div class="vc-seq__cta">
+            <a
+              class="vc-btn vc-btn--solid"
+              href="{{checkoutUrl}}"
+              target="_blank"
+              rel="noopener noreferrer"
+              >Quiero sanar — Acceder a la guía 💛</a>
+            <p class="vc-seq__cta-meta">{{price}} · {{priceNote}}</p>
           </div>
         </div>
       </section>
@@ -104,15 +171,6 @@
                 </svg>
               </div>
               <p>Sentís culpa o tristeza constante.</p>
-            </article>
-            <article class="vc-card">
-              <div class="vc-card__icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <circle cx="12" cy="8" r="3.5" />
-                  <path d="M6 20v-1.5A4.5 4.5 0 0110.5 14h3A4.5 4.5 0 0118 18.5V20" />
-                </svg>
-              </div>
-              <p>Nadie parece entender lo que sentís.</p>
             </article>
             <article class="vc-card">
               <div class="vc-card__icon" aria-hidden="true">
@@ -257,7 +315,7 @@
               </ul>
               <a
                 class="vc-btn vc-btn--solid"
-                href="https://alasparasiempre.impultienda.ar/"
+                href="{{checkoutUrl}}"
                 target="_blank"
                 rel="noopener noreferrer"
                 >Quiero empezar a sanar →</a>
@@ -328,13 +386,111 @@
         </div>
       </section>
 
+      <!-- Testimonios de productos -->
+      <section class="vc-testi" aria-labelledby="vc-testi-title">
+        <div class="vc-shell">
+          <div class="vc-section-head">
+            <p class="vc-section-head__label">Testimonios</p>
+            <h2 id="vc-testi-title">Esto es lo que dicen quienes ya confiaron en mi trabajo</h2>
+          </div>
+          <figure class="vc-testi__collage">
+            <img
+              src="/ebook/testimonios/resenas.png"
+              alt="Mensajes reales de lectoras: «No sabía si iba a poder leerlo sin llorar… pero me hizo tan bien», «Este libro fue un abrazo en el momento justo», «Me ayudó a entender muchas cosas que me costaban tanto», entre otros testimonios de agradecimiento."
+              loading="lazy"
+              decoding="async"
+            />
+          </figure>
+          <p class="vc-testi__close">
+            El mismo amor y dedicación que pongo en cada bolso pintado, lo puse en esta guía.
+          </p>
+          <div class="vc-testi__cta">
+            <a
+              class="vc-btn vc-btn--solid"
+              href="{{checkoutUrl}}"
+              target="_blank"
+              rel="noopener noreferrer"
+              >Quiero acceder a la guía →</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Conocé a la autora -->
+      <section class="vc-author" aria-labelledby="vc-author-title">
+        <div class="vc-shell">
+          <div class="vc-author__grid">
+            <figure class="vc-author__photo" data-label="Foto de Victoria">
+              <img
+                src="/ebook/victoria.jpg"
+                alt="Victoria Citro, artista y autora de la guía, junto a una mascota"
+                loading="lazy"
+                decoding="async"
+                onerror="this.style.display='none'"
+              />
+            </figure>
+            <div class="vc-author__body">
+              <p class="vc-kicker">La autora</p>
+              <h2 id="vc-author-title">Conocé a Victoria Citro</h2>
+              <p>
+                Soy Victoria, artista y amante de los animales. Pinto retratos de mascotas a mano en bolsos y
+                cuadros, y cada pieza que creo nace del mismo lugar: el amor que sentimos por nuestros compañeros
+                de vida.
+              </p>
+              <p>
+                Escribí esta guía porque viví el duelo de cerca, y porque creo que mereces un espacio que entienda
+                lo que estás sintiendo, sin apuro y sin minimizarlo.
+              </p>
+              <a
+                class="vc-btn vc-btn--ghost"
+                href="https://instagram.com/victoriacitro"
+                target="_blank"
+                rel="noopener noreferrer"
+                >📷 Seguime en Instagram →</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Preguntas frecuentes -->
+      <section class="vc-faq" aria-labelledby="vc-faq-title">
+        <div class="vc-shell">
+          <div class="vc-section-head">
+            <p class="vc-section-head__label">FAQ</p>
+            <h2 id="vc-faq-title">Preguntas frecuentes</h2>
+          </div>
+          <div class="vc-faq__list">
+            <details class="vc-faq__item">
+              <summary>¿Cómo recibo la guía?</summary>
+              <p>Es 100% digital. Apenas confirmás el pago, accedés al instante desde tu celular o computadora.</p>
+            </details>
+            <details class="vc-faq__item">
+              <summary>¿Y si no me sirve?</summary>
+              <p>Tenés garantía de 7 días. Si sentís que no era para vos, te devolvemos el dinero sin vueltas.</p>
+            </details>
+            <details class="vc-faq__item">
+              <summary>¿Sirve si perdí a mi gato, no a mi perro?</summary>
+              <p>
+                Sí, aunque esta edición está ambientada en perros, el contenido emocional aplica a cualquier
+                compañero que hayas perdido.
+              </p>
+            </details>
+            <details class="vc-faq__item">
+              <summary>¿Necesito algún programa especial para leerlo?</summary>
+              <p>No, se lee desde cualquier celular, tablet o computadora, sin instalar nada.</p>
+            </details>
+          </div>
+        </div>
+      </section>
+
       <!-- CTA final → tienda -->
       <section class="vc-download" id="descarga" aria-label="Comprar la guía">
         <div class="vc-shell">
           <div class="vc-download__box">
+            <h2>Tu corazón y su memoria merecen este espacio para sanar.</h2>
+            <p class="vc-download__price">{{price}} · {{priceNote}} · {{guarantee}}</p>
             <a
               class="vc-btn vc-btn--solid vc-download__cta"
-              href="https://alasparasiempre.impultienda.ar/"
+              href="{{checkoutUrl}}"
               target="_blank"
               rel="noopener noreferrer"
               >Recibí el acceso a la guía →</a>

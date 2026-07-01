@@ -2,6 +2,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseEbookLegacy } from '../../lib/ebookLegacy';
+import { applyLandingVars } from '../../data/ebookLanding';
 
 const indexPath = join(process.cwd(), 'ebooks', 'index.html');
 const hasLegacy = existsSync(indexPath);
@@ -11,7 +12,8 @@ let legacyPayload: ReturnType<typeof parseEbookLegacy> | undefined;
 let Catalog: (typeof import('../../components/ebooks/EbooksCatalog.astro'))['default'] | undefined;
 
 if (hasLegacy) {
-	legacyPayload = parseEbookLegacy(readFileSync(indexPath, 'utf-8'));
+	const rawHtml = applyLandingVars(readFileSync(indexPath, 'utf-8'));
+	legacyPayload = parseEbookLegacy(rawHtml);
 	LegacyShell = (await import('../../layouts/EbookLegacyShell.astro')).default;
 } else {
 	Catalog = (await import('../../components/ebooks/EbooksCatalog.astro')).default;

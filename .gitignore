@@ -17,6 +17,12 @@ pnpm-debug.log*
 .env
 .env.production
 
+# contenido pago (PDFs de ebooks) — nunca en el repo ni en el sitio público
+private-ebooks/
+
+# base de datos de ventas (SQLite) — datos de clientes, no va a git
+server/data/
+
 # macOS-specific files
 .DS_Store
 

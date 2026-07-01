@@ -1,0 +1,154 @@
+---
+import { getMainEbook, getBonuses, getUpsells, formatArs } from '../data/ebookProducts';
+
+const main = getMainEbook();
+const bonuses = getBonuses();
+const upsells = getUpsells();
+const mainPrice = main.priceArs ?? 0;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tu pedido · {main.title}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400..700;1,400..700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/ebooks/css/ebooks-landing.css" />
+    <link rel="stylesheet" href="/ebooks/css/cart.css" />
+    <link rel="icon" href="/ebook/favicon-vc.png" type="image/png" />
+  </head>
+  <body>
+    <div class="vc-page">
+      <header class="vc-header">
+        <div class="vc-header__inner">
+          <a class="vc-brand" href="/ebooks">
+            <span class="vc-brand__name">Victoria Citro</span>
+            <span class="vc-brand__tag">Arte &amp; duelo</span>
+          </a>
+        </div>
+      </header>
+
+      <section class="vc-cart">
+        <div class="vc-cart__box">
+          <div class="vc-cart__head">
+            <h1>Tu pedido</h1>
+            <p>Revisá tu compra antes de pagar</p>
+          </div>
+
+          <!-- Ebook principal -->
+          <div class="vc-cart__main" data-slug={main.slug} data-price={mainPrice}>
+            <img src={main.cover} alt={main.title} width="70" height="105" loading="eager" />
+            <div class="vc-cart__info">
+              <strong>{main.title}</strong>
+              <span class="vc-cart__tag">Acceso digital inmediato</span>
+            </div>
+            <div class="vc-cart__price">
+              {main.regularPriceArs && <s>{formatArs(main.regularPriceArs)}</s>}
+              <b>{formatArs(mainPrice)}</b>
+            </div>
+          </div>
+
+          {
+            bonuses.length > 0 && (
+              <div class="vc-cart__bonuses">
+                <p class="vc-cart__label">🎁 Bonos incluidos gratis</p>
+                {bonuses.map((b) => (
+                  <div class="vc-cart__bonus">
+                    <img src={b.cover} alt={b.title} width="42" height="56" loading="lazy" />
+                    <span>{b.title}</span>
+                    <em>
+                      {b.regularPriceArs && <s>{formatArs(b.regularPriceArs)}</s>} GRATIS
+                    </em>
+                  </div>
+                ))}
+              </div>
+            )
+          }
+
+          {
+            upsells.length > 0 && (
+              <div class="vc-cart__upsells">
+                <p class="vc-cart__label">Mejorá tu compra</p>
+                {upsells.map((u) => (
+                  <label class="vc-cart__upsell">
+                    <input type="checkbox" class="vc-upsell" data-slug={u.slug} data-price={u.upsellPriceArs} />
+                    <img src={u.cover} alt={u.title} width="56" height="80" loading="lazy" />
+                    <div class="vc-cart__info">
+                      <strong>{u.title}</strong>
+                      <span class="vc-cart__tag">{u.description}</span>
+                    </div>
+                    <div class="vc-cart__price">
+                      {u.regularPriceArs && <s>{formatArs(u.regularPriceArs)}</s>}
+                      <b>{u.upsellPriceArs != null ? formatArs(u.upsellPriceArs) : ''}</b>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            )
+          }
+
+          <div class="vc-cart__total">
+            <span>Total</span>
+            <b id="vc-total">{formatArs(mainPrice)}</b>
+          </div>
+
+          <label class="vc-cart__emaillabel" for="vc-email">Tu email (te enviamos el acceso)</label>
+          <input id="vc-email" type="email" required placeholder="tu@email.com" autocomplete="email" />
+
+          <button id="vc-pay" class="vc-btn vc-btn--solid" type="button">Pagar con Mercado Pago</button>
+          <p class="vc-cart__note" id="vc-msg">🔒 Pago seguro procesado por Mercado Pago · Garantía de 7 días</p>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const apiBase =
+        location.hostname === 'localhost' || location.hostname === '127.0.0.1' ? 'http://localhost:4000' : '';
+      const fmt = (n) => '$' + Number(n).toLocaleString('es-AR');
+      const mainEl = document.querySelector('.vc-cart__main');
+      const mainSlug = mainEl.dataset.slug;
+      const mainPriceVal = Number(mainEl.dataset.price);
+
+      function recalc() {
+        let total = mainPriceVal;
+        document.querySelectorAll('.vc-upsell:checked').forEach((el) => (total += Number(el.dataset.price)));
+        document.getElementById('vc-total').textContent = fmt(total);
+      }
+      document.querySelectorAll('.vc-upsell').forEach((el) => el.addEventListener('change', recalc));
+
+      document.getElementById('vc-pay').addEventListener('click', async () => {
+        const email = document.getElementById('vc-email').value.trim();
+        const msg = document.getElementById('vc-msg');
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+          msg.textContent = 'Ingresá un email válido, por favor.';
+          return;
+        }
+        const items = [mainSlug];
+        document.querySelectorAll('.vc-upsell:checked').forEach((el) => items.push(el.dataset.slug));
+
+        const btn = document.getElementById('vc-pay');
+        btn.disabled = true;
+        msg.textContent = 'Redirigiendo a Mercado Pago…';
+        try {
+          const res = await fetch(apiBase + '/api/checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items, email }),
+          });
+          const data = await res.json();
+          if (!res.ok || !data.initPoint) throw new Error(data.error || 'Error al crear el pago.');
+          window.location.href = data.initPoint;
+        } catch (e) {
+          msg.textContent = e.message || 'No se pudo iniciar el pago. Intentá de nuevo.';
+          btn.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>

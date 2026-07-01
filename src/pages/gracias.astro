@@ -1,0 +1,102 @@
+---
+// Página de retorno post-pago. Lee ?order=... y consulta el estado hasta confirmarlo.
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>¡Gracias por tu compra! · Victoria Citro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400..700;1,400..700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/ebooks/css/ebooks-landing.css" />
+    <link rel="icon" href="/ebook/favicon-vc.png" type="image/png" />
+  </head>
+  <body>
+    <div class="vc-page">
+      <header class="vc-header">
+        <div class="vc-header__inner">
+          <a class="vc-brand" href="/ebooks">
+            <span class="vc-brand__name">Victoria Citro</span>
+            <span class="vc-brand__tag">Arte &amp; duelo</span>
+          </a>
+        </div>
+      </header>
+
+      <section class="vc-download" style="min-height:70vh">
+        <div class="vc-shell">
+          <div class="vc-download__box">
+            <h2 id="vc-title">Confirmando tu pago…</h2>
+            <p class="vc-download__hint" id="vc-hint">Esto puede tardar unos segundos. No cierres esta página.</p>
+            <div id="vc-downloads" style="margin-top:1.5rem;display:flex;flex-direction:column;gap:.75rem"></div>
+            <p class="vc-form__note" id="vc-help" style="margin-top:1.5rem"></p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const apiBase =
+        location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+          ? 'http://localhost:4000'
+          : '';
+      const orderId = new URLSearchParams(location.search).get('order');
+      const title = document.getElementById('vc-title');
+      const hint = document.getElementById('vc-hint');
+      const downloads = document.getElementById('vc-downloads');
+      const help = document.getElementById('vc-help');
+
+      if (!orderId) {
+        title.textContent = 'Orden no encontrada';
+        hint.textContent = 'No pudimos identificar tu compra.';
+      } else {
+        let tries = 0;
+        const maxTries = 40; // ~2 min
+
+        async function check() {
+          tries++;
+          try {
+            const res = await fetch(apiBase + '/api/order/' + orderId);
+            const data = await res.json();
+
+            if (data.status === 'approved') {
+              title.textContent = '¡Gracias por tu compra! 💛';
+              hint.textContent = 'Tu acceso está listo. Descargá tu material:';
+              downloads.innerHTML = '';
+              (data.downloads || []).forEach((d) => {
+                const a = document.createElement('a');
+                a.href = d.url;
+                a.className = 'vc-btn vc-btn--solid';
+                a.textContent = '⬇ ' + d.title;
+                downloads.appendChild(a);
+              });
+              help.textContent = 'También te enviamos el acceso a ' + (data.email || 'tu email') + '.';
+              return;
+            }
+            if (data.status === 'rejected') {
+              title.textContent = 'El pago no se completó';
+              hint.textContent = 'No se aprobó el pago. Podés intentar de nuevo.';
+              downloads.innerHTML = '<a class="vc-btn vc-btn--solid" href="/comprar">Volver a intentar</a>';
+              return;
+            }
+          } catch {
+            /* reintenta */
+          }
+          if (tries < maxTries) {
+            setTimeout(check, 3000);
+          } else {
+            title.textContent = 'Seguimos procesando tu pago';
+            hint.textContent =
+              'Si ya pagaste, tu acceso puede tardar unos minutos. Te lo enviaremos por email en cuanto se confirme.';
+          }
+        }
+        check();
+      }
+    </script>
+  </body>
+</html>
