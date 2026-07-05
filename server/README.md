@@ -62,12 +62,43 @@ Para que MP pueda redirigir al final, poné esa misma URL (o el dominio real) ta
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| POST | `/api/checkout` | `{ items: string[], email }` → crea la orden + preferencia MP. Devuelve `{ orderId, initPoint }`. |
-| GET/POST | `/api/mp/webhook` | Notificaciones de MP. Verifica el pago y actualiza la orden. |
-| GET | `/api/order/:id` | Estado de la orden + links de descarga si está aprobada. |
-| GET | `/api/download/:token` | Descarga protegida (token firmado + verificación en BD). |
+| POST | `/api/checkout` | **Ebooks (combo).** `{ items: string[], email }` → precios validados contra `ebookProducts.json`. Devuelve `{ orderId, initPoint }`. |
+| POST | `/api/checkout/product` | **Genérico (kits, productos sueltos).** `{ productId, quantity?, email }` o `{ items: [{id, quantity}], email }` → precios validados contra `shopProducts.json`. Devuelve `{ orderId, initPoint }`. |
+| POST | `/api/checkout/link` | **Precio negociado (protegido con usuario/clave).** `{ title, amount, quantity?, email?, description? }` → genera un link de pago MP a monto libre. Para el cierre manual de Victoria (bolsos a medida, kits personalizados). |
+| GET/POST | `/api/mp/webhook` | Notificaciones de MP. Verifica el pago y actualiza la orden (mismo webhook para TODOS los productos). |
+| GET | `/api/order/:id` | Estado de la orden. Si es ebook, incluye links de descarga; si es producto físico, sólo confirma el pago. |
+| GET | `/api/download/:token` | Descarga protegida (token firmado + verificación en BD). Sólo para ebooks. |
 | GET | `/admin` | Panel de ventas (usuario/clave). |
 | GET | `/admin/sales.csv` | Export contable para el contador. |
+
+### Checkout para TODOS los productos (no sólo ebooks)
+
+El mismo backend, base de datos y webhook cubren **cualquier** producto:
+
+- **Ebooks (digitales):** flujo completo con entrega automática del PDF (`/comprar` → `/api/checkout`). Sin cambios.
+- **Productos del catálogo físico** (kits del Mundial, productos sueltos): definidos en
+  `../src/data/shopProducts.json` con su precio. Página de pago genérica **`/pagar?producto=<id>`**
+  (ej. `/pagar?producto=kit-clasico`) → `/api/checkout/product`. Al aprobarse el pago se registra la
+  orden y se envía un email de confirmación (no hay descarga; se coordina el envío).
+- **Bolsos de lujo pintados a mano:** son a medida y **sin precio fijo**; el cierre es **manual e
+  intencional** por WhatsApp (ver `docs/automatizacion/Estrategia_Automatizacion_Bolsos.md`). Para
+  cobrarlos, Victoria usa `/api/checkout/link` con el monto acordado (endpoint protegido).
+- **`/kit-mundial`:** su flujo (preview con IA + WhatsApp, cierre manual) **NO se toca**. Los kits del
+  Mundial hoy se cobran por Tiendanube; si se quiere cobrar acá, ya están cargados en `shopProducts.json`
+  y se pueden vender vía `/pagar?producto=kit-clasico` (o el id que corresponda).
+
+> **Precios:** los productos físicos se editan en `../src/data/shopProducts.json` (`priceArs`). Un
+> producto con `available: false` o `priceArs: null` NO se puede pagar directo (devuelve error
+> controlado). Ese es el caso del bolso a medida: se cobra con `/api/checkout/link`.
+
+Ejemplo de uso del link de pago negociado (lo corre Victoria/Bruno, requiere usuario y clave del panel):
+
+```bash
+curl -u "$ADMIN_USER:$ADMIN_PASS" -X POST http://localhost:4000/api/checkout/link \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Bolso a medida - retrato de Firulais","amount":250000,"email":"cliente@mail.com"}'
+# → { "orderId": "...", "initPoint": "https://www.mercadopago.com.ar/checkout/..." }
+```
 
 ---
 

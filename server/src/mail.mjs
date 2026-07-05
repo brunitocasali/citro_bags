@@ -49,6 +49,94 @@ export async function sendDownloadEmail(order) {
   return true;
 }
 
+/**
+ * Envía el email de confirmación de un pedido FÍSICO (sin descarga): kits, productos
+ * sueltos, etc. Confirma el pago y avisa que se coordina el envío por WhatsApp.
+ *
+ * @returns {Promise<boolean>} true si se envió (o si no hay que enviar).
+ */
+export async function sendOrderConfirmationEmail(order) {
+  if (!config.resendApiKey) {
+    console.warn('[mail] RESEND_API_KEY no configurada: se omite el email de confirmación.');
+    return false;
+  }
+
+  const html = buildConfirmationHtml(order);
+  const text = buildConfirmationText(order);
+
+  const body = {
+    from: config.mailFrom,
+    to: [order.email],
+    subject: `¡Recibimos tu pago! 💛 — ${config.brandName}`,
+    html,
+    text,
+  };
+  if (config.mailReplyTo) body.reply_to = config.mailReplyTo;
+
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${config.resendApiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const detail = await res.text().catch(() => '');
+    throw new Error(`Resend respondió ${res.status}: ${detail}`);
+  }
+  return true;
+}
+
+function buildConfirmationHtml(order) {
+  const rows = order.items
+    .map(
+      (i) => `
+      <tr>
+        <td style="padding:12px 0;border-bottom:1px solid #eee;color:#4a3728;font-size:15px;">
+          <strong>${escapeHtml(i.title)}</strong>${i.quantity && i.quantity > 1 ? ` × ${i.quantity}` : ''}
+        </td>
+      </tr>`
+    )
+    .join('');
+
+  return `<!doctype html>
+<html lang="es"><body style="margin:0;background:#f7f1e8;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#4a3728;">
+  <div style="max-width:560px;margin:0 auto;padding:24px;">
+    <div style="text-align:center;padding:8px 0 20px;">
+      <div style="font-family:Georgia,serif;font-size:22px;color:#4a3728;">${escapeHtml(config.brandName)}</div>
+    </div>
+    <div style="background:#fff;border-radius:16px;padding:28px;box-shadow:0 8px 24px rgba(61,52,45,.08);">
+      <h1 style="font-family:Georgia,serif;font-weight:500;font-size:22px;margin:0 0 6px;">¡Gracias por tu compra! 💛</h1>
+      <p style="color:#7a6a58;font-size:14px;line-height:1.5;margin:0 0 20px;">
+        Recibimos tu pago. En breve nos comunicamos con vos para coordinar los detalles y el envío de tu pedido.
+      </p>
+      <table style="width:100%;border-collapse:collapse;">${rows}</table>
+      <p style="color:#9a8a78;font-size:12px;line-height:1.5;margin:22px 0 0;">
+        Si tenés cualquier consulta, respondé a este email y te ayudamos.
+      </p>
+    </div>
+    <p style="text-align:center;color:#b0a290;font-size:11px;margin:18px 0 0;">
+      Orden ${escapeHtml(order.id)} · Pago seguro con Mercado Pago
+    </p>
+  </div>
+</body></html>`;
+}
+
+function buildConfirmationText(order) {
+  const lines = order.items.map((i) => `• ${i.title}${i.quantity && i.quantity > 1 ? ` × ${i.quantity}` : ''}`).join('\n');
+  return [
+    `¡Gracias por tu compra! Recibimos tu pago.`,
+    ``,
+    `Tu pedido:`,
+    lines,
+    ``,
+    `En breve nos comunicamos para coordinar los detalles y el envío.`,
+    `Orden ${order.id} — ${config.brandName}`,
+  ].join('\n');
+}
+
 function buildHtml(order, links) {
   const items = links
     .map(

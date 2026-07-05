@@ -66,16 +66,23 @@
 
             if (data.status === 'approved') {
               title.textContent = '¡Gracias por tu compra! 💛';
-              hint.textContent = 'Tu acceso está listo. Descargá tu material:';
               downloads.innerHTML = '';
-              (data.downloads || []).forEach((d) => {
-                const a = document.createElement('a');
-                a.href = d.url;
-                a.className = 'vc-btn vc-btn--solid';
-                a.textContent = '⬇ ' + d.title;
-                downloads.appendChild(a);
-              });
-              help.textContent = 'También te enviamos el acceso a ' + (data.email || 'tu email') + '.';
+              const hasDownloads = (data.downloads || []).length > 0;
+              if (hasDownloads) {
+                hint.textContent = 'Tu acceso está listo. Descargá tu material:';
+                data.downloads.forEach((d) => {
+                  const a = document.createElement('a');
+                  a.href = d.url;
+                  a.className = 'vc-btn vc-btn--solid';
+                  a.textContent = '⬇ ' + d.title;
+                  downloads.appendChild(a);
+                });
+                help.textContent = 'También te enviamos el acceso a ' + (data.email || 'tu email') + '.';
+              } else {
+                // Producto físico: no hay descarga, coordinamos el envío.
+                hint.textContent = 'Recibimos tu pago. En breve nos comunicamos para coordinar los detalles y el envío.';
+                help.textContent = 'Te enviamos la confirmación a ' + (data.email || 'tu email') + '.';
+              }
               return;
             }
             if (data.status === 'rejected') {

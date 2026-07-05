@@ -1,0 +1,92 @@
+[
+  {
+    "id": "kit-clasico",
+    "title": "Kit Hincha Clásico",
+    "description": "Remera + taza personalizada con tu mascota.",
+    "category": "kit",
+    "priceArs": 75000,
+    "shippingNote": "Envío gratis",
+    "available": true,
+    "digital": false
+  },
+  {
+    "id": "kit-recuerdo",
+    "title": "Kit Recuerdo Mundialero",
+    "description": "Remera + taza + cuadrito para guardar el recuerdo para siempre.",
+    "category": "kit",
+    "priceArs": 145000,
+    "shippingNote": "Envío gratis",
+    "available": true,
+    "digital": false
+  },
+  {
+    "id": "kit-full",
+    "title": "Kit Full Mundial",
+    "description": "Remera + taza + tote + gorra + cuadrito. El más completo.",
+    "category": "kit",
+    "priceArs": 169000,
+    "shippingNote": "Envío gratis",
+    "available": true,
+    "digital": false
+  },
+  {
+    "id": "taza",
+    "title": "Taza personalizada",
+    "description": "Taza con la ilustración de tu mascota.",
+    "category": "suelto",
+    "priceArs": 24000,
+    "shippingNote": null,
+    "available": true,
+    "digital": false
+  },
+  {
+    "id": "remera",
+    "title": "Remera personalizada",
+    "description": "Remera con la ilustración de tu mascota (talles S al XXL).",
+    "category": "suelto",
+    "priceArs": 56000,
+    "shippingNote": null,
+    "available": true,
+    "digital": false
+  },
+  {
+    "id": "tote",
+    "title": "Tote bag personalizado",
+    "description": "Tote de tela con la ilustración de tu mascota.",
+    "category": "suelto",
+    "priceArs": 36000,
+    "shippingNote": null,
+    "available": true,
+    "digital": false
+  },
+  {
+    "id": "cuadro",
+    "title": "Cuadro personalizado",
+    "description": "Cuadrito con la ilustración de tu mascota.",
+    "category": "suelto",
+    "priceArs": 45000,
+    "shippingNote": null,
+    "available": true,
+    "digital": false
+  },
+  {
+    "id": "gorra",
+    "title": "Gorra personalizada",
+    "description": "Gorra con la ilustración de tu mascota.",
+    "category": "suelto",
+    "priceArs": 39000,
+    "shippingNote": null,
+    "available": true,
+    "digital": false
+  },
+  {
+    "id": "bolso-personalizado",
+    "title": "Bolso de lujo pintado a mano",
+    "description": "Bolso de cuero pintado a mano a pedido. Precio a definir según diseño y modelo: el cierre y la cotización los coordina Victoria por WhatsApp. Se deja NO disponible para pago directo a propósito.",
+    "category": "bolso",
+    "priceArs": null,
+    "shippingNote": "A coordinar",
+    "available": false,
+    "digital": false
+  }
+]

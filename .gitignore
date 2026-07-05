@@ -20,8 +20,9 @@ pnpm-debug.log*
 # contenido pago (PDFs de ebooks) — nunca en el repo ni en el sitio público
 private-ebooks/
 
-# base de datos de ventas (SQLite) — datos de clientes, no va a git
+# base de datos de ventas (SQLite) + previews generados con IA (fotos de clientes) — no van a git
 server/data/
+server/data/kit-previews/
 
 # macOS-specific files
 .DS_Store

@@ -53,4 +53,25 @@ export const config = {
 
   currency: process.env.CURRENCY ?? 'ARS',
   catalogPath: join(repoRoot, 'src', 'data', 'ebookProducts.json'),
+  // Catálogo de productos físicos (bolsos, kits, productos sueltos). Mismo JSON que usa la web.
+  shopCatalogPath: join(repoRoot, 'src', 'data', 'shopProducts.json'),
+
+  // Monto máximo permitido para el link de pago a precio negociado (/api/checkout/link).
+  // Evita cobros absurdos por error de tipeo. Ajustable por env.
+  maxCustomAmountArs: Number(process.env.MAX_CUSTOM_AMOUNT_ARS ?? 5_000_000),
+
+  // --- Generación de preview "Kit Mundial" con IA (OpenAI) ---
+  // Si OPENAI_API_KEY queda vacío, el endpoint /api/kit-preview responde 503 y el sitio
+  // hace fallback a WhatsApp (el cliente manda la foto por chat). No rompe nada.
+  openaiApiKey: process.env.OPENAI_API_KEY ?? '',
+  // Modelo por defecto: gpt-image-1-mini (más nuevo y económico que gpt-image-1, que OpenAI
+  // discontinúa el 23-oct-2026). Calidad "medium" = buen equilibrio costo/calidad.
+  openaiImageModel: process.env.OPENAI_IMAGE_MODEL ?? 'gpt-image-1-mini',
+  openaiImageSize: process.env.OPENAI_IMAGE_SIZE ?? '1536x1024',
+  // Calidad de render: 'low' | 'medium' | 'high'. Más alta = más cara y más lenta.
+  openaiImageQuality: process.env.OPENAI_IMAGE_QUALITY ?? 'medium',
+  // Carpeta donde guardamos cada preview generado (nuestro archivo de respaldo).
+  kitPreviewsDir: process.env.KIT_PREVIEWS_DIR
+    ? resolve(process.env.KIT_PREVIEWS_DIR)
+    : join(__dirname, '..', 'data', 'kit-previews'),
 };

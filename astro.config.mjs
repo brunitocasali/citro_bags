@@ -3,6 +3,6 @@ import { defineConfig } from 'astro/config';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://www.tu-dominio.com',
+  site: 'https://victoriacitro.net',
   output: 'static',
 });

@@ -18,7 +18,7 @@ export async function createPreference(order) {
     items: order.items.map((i) => ({
       id: i.slug,
       title: i.title,
-      quantity: 1,
+      quantity: i.quantity ?? 1,
       unit_price: i.price,
       currency_id: config.currency,
     })),

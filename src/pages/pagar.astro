@@ -1,0 +1,199 @@
+---
+import shopProducts from '../data/shopProducts.json';
+
+interface ShopProduct {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  priceArs: number | null;
+  shippingNote: string | null;
+  available: boolean;
+  digital: boolean;
+}
+
+// Sólo productos disponibles y con precio definido pueden pagarse directo.
+const buyable = (shopProducts as ShopProduct[]).filter((p) => p.available && p.priceArs != null);
+const fmt = (n: number) => '$' + n.toLocaleString('es-AR');
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pagar tu pedido · Victoria Citro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400..700;1,400..700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/ebooks/css/ebooks-landing.css" />
+    <link rel="stylesheet" href="/ebooks/css/cart.css" />
+    <link rel="icon" href="/ebook/favicon-vc.png" type="image/png" />
+  </head>
+  <body>
+    <div class="vc-page">
+      <header class="vc-header">
+        <div class="vc-header__inner">
+          <a class="vc-brand" href="/">
+            <span class="vc-brand__name">Victoria Citro</span>
+            <span class="vc-brand__tag">Arte hecho a mano</span>
+          </a>
+        </div>
+      </header>
+
+      <section class="vc-cart">
+        <div class="vc-cart__box">
+          <div class="vc-cart__head">
+            <h1>Tu pedido</h1>
+            <p>Revisá tu compra antes de pagar</p>
+          </div>
+
+          <!-- El detalle del producto lo arma el script según ?producto= -->
+          <div id="vc-product" class="vc-cart__main" hidden>
+            <div class="vc-cart__info">
+              <strong id="vc-title"></strong>
+              <span class="vc-cart__tag" id="vc-desc"></span>
+            </div>
+            <div class="vc-cart__price">
+              <b id="vc-unit"></b>
+            </div>
+          </div>
+
+          <!-- Selector de cantidad -->
+          <div id="vc-qtyrow" class="vc-cart__upsells" hidden>
+            <label class="vc-cart__emaillabel" for="vc-qty">Cantidad</label>
+            <input id="vc-qty" type="number" min="1" max="20" value="1" inputmode="numeric" />
+          </div>
+
+          <!-- Si no viene un producto válido por la URL: listado para elegir -->
+          <div id="vc-picker" class="vc-cart__upsells" hidden>
+            <p class="vc-cart__label">Elegí un producto</p>
+            <div id="vc-picker-list"></div>
+          </div>
+
+          <div id="vc-totalrow" class="vc-cart__total" hidden>
+            <span>Total</span>
+            <b id="vc-total"></b>
+          </div>
+
+          <div id="vc-form" hidden>
+            <label class="vc-cart__emaillabel" for="vc-email">Tu email (te enviamos la confirmación)</label>
+            <input id="vc-email" type="email" required placeholder="tu@email.com" autocomplete="email" />
+
+            <button id="vc-pay" class="vc-btn vc-btn--solid" type="button">Pagar con Mercado Pago</button>
+            <p class="vc-cart__note" id="vc-msg">🔒 Pago seguro procesado por Mercado Pago</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script type="application/json" id="vc-catalog" set:html={JSON.stringify(buyable)}></script>
+
+    <script>
+      const apiBase =
+        location.hostname === 'localhost' || location.hostname === '127.0.0.1' ? 'http://localhost:4000' : '';
+      const fmt = (n) => '$' + Number(n).toLocaleString('es-AR');
+      const catalog = JSON.parse(document.getElementById('vc-catalog').textContent || '[]');
+      const byId = Object.fromEntries(catalog.map((p) => [p.id, p]));
+
+      const els = {
+        product: document.getElementById('vc-product'),
+        title: document.getElementById('vc-title'),
+        desc: document.getElementById('vc-desc'),
+        unit: document.getElementById('vc-unit'),
+        qtyRow: document.getElementById('vc-qtyrow'),
+        qty: document.getElementById('vc-qty'),
+        picker: document.getElementById('vc-picker'),
+        pickerList: document.getElementById('vc-picker-list'),
+        totalRow: document.getElementById('vc-totalrow'),
+        total: document.getElementById('vc-total'),
+        form: document.getElementById('vc-form'),
+        email: document.getElementById('vc-email'),
+        pay: document.getElementById('vc-pay'),
+        msg: document.getElementById('vc-msg'),
+      };
+
+      let selected = null;
+
+      function recalc() {
+        if (!selected) return;
+        const qty = Math.max(1, Math.min(20, Number(els.qty.value) || 1));
+        els.total.textContent = fmt(selected.priceArs * qty);
+      }
+
+      function selectProduct(p) {
+        selected = p;
+        els.title.textContent = p.title;
+        els.desc.textContent = p.description || '';
+        els.unit.textContent = fmt(p.priceArs);
+        els.product.hidden = false;
+        els.qtyRow.hidden = false;
+        els.totalRow.hidden = false;
+        els.form.hidden = false;
+        els.picker.hidden = true;
+        recalc();
+      }
+
+      function showPicker() {
+        if (catalog.length === 0) {
+          els.picker.hidden = false;
+          els.pickerList.innerHTML =
+            '<p class="vc-cart__tag">No hay productos disponibles para pago directo en este momento.</p>';
+          return;
+        }
+        els.picker.hidden = false;
+        els.pickerList.innerHTML = '';
+        catalog.forEach((p) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'vc-btn';
+          btn.style.cssText = 'display:flex;justify-content:space-between;width:100%;margin:.35rem 0;text-align:left;';
+          btn.innerHTML = `<span>${p.title}</span><b>${fmt(p.priceArs)}</b>`;
+          btn.addEventListener('click', () => {
+            const u = new URL(location.href);
+            u.searchParams.set('producto', p.id);
+            history.replaceState({}, '', u);
+            selectProduct(p);
+          });
+          els.pickerList.appendChild(btn);
+        });
+      }
+
+      els.qty.addEventListener('input', recalc);
+
+      els.pay.addEventListener('click', async () => {
+        const email = els.email.value.trim();
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+          els.msg.textContent = 'Ingresá un email válido, por favor.';
+          return;
+        }
+        const quantity = Math.max(1, Math.min(20, Number(els.qty.value) || 1));
+        els.pay.disabled = true;
+        els.msg.textContent = 'Redirigiendo a Mercado Pago…';
+        try {
+          const res = await fetch(apiBase + '/api/checkout/product', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productId: selected.id, quantity, email }),
+          });
+          const data = await res.json();
+          if (!res.ok || !data.initPoint) throw new Error(data.error || 'Error al crear el pago.');
+          window.location.href = data.initPoint;
+        } catch (e) {
+          els.msg.textContent = e.message || 'No se pudo iniciar el pago. Intentá de nuevo.';
+          els.pay.disabled = false;
+        }
+      });
+
+      const params = new URLSearchParams(location.search);
+      const wanted = params.get('producto');
+      const qtyParam = Number(params.get('cantidad'));
+      if (qtyParam >= 1 && qtyParam <= 20) els.qty.value = String(Math.trunc(qtyParam));
+      if (wanted && byId[wanted]) selectProduct(byId[wanted]);
+      else showPicker();
+    </script>
+  </body>
+</html>

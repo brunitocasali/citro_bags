@@ -1,9 +1,12 @@
 import express from 'express';
+import multer from 'multer';
 import crypto from 'node:crypto';
 import { existsSync, statSync, createReadStream } from 'node:fs';
 import { join } from 'node:path';
 import { config } from './config.mjs';
+import { generateKitPreview } from './kitPreview.mjs';
 import { priceItems, getProduct } from './catalog.mjs';
+import { priceShopItems } from './shopCatalog.mjs';
 import {
   createOrder,
   getOrder,
@@ -14,18 +17,31 @@ import {
 } from './db.mjs';
 import { createPreference, getPayment } from './mp.mjs';
 import { makeDownloadToken, verifyDownloadToken } from './tokens.mjs';
-import { sendDownloadEmail } from './mail.mjs';
+import { sendDownloadEmail, sendOrderConfirmationEmail } from './mail.mjs';
 import { basicAuth, salesReportHtml, salesReportCsv } from './admin.mjs';
 
-/** Envía el email de descarga una sola vez por orden. No rompe el flujo si falla. */
+const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+
+/** ¿La orden tiene productos digitales (con archivo para descargar)? */
+function orderHasDownloads(order) {
+  return order.items.some((i) => i.file);
+}
+
+/**
+ * Envía el email de la orden una sola vez. No rompe el flujo si falla.
+ * - Ebooks (con archivo): email con links de descarga firmados.
+ * - Productos físicos (sin archivo): email de confirmación + aviso de coordinación de envío.
+ */
 async function deliverEmailOnce(orderId) {
   const order = getOrder(orderId);
   if (!order || order.status !== 'approved' || order.email_sent) return;
   try {
-    const sent = await sendDownloadEmail(order);
+    const sent = orderHasDownloads(order)
+      ? await sendDownloadEmail(order)
+      : await sendOrderConfirmationEmail(order);
     if (sent) {
       markOrderEmailSent(orderId);
-      console.log(`[mail] Email de descarga enviado a ${order.email} (orden ${orderId}).`);
+      console.log(`[mail] Email enviado a ${order.email} (orden ${orderId}).`);
     }
   } catch (err) {
     console.error(`[mail] No se pudo enviar el email de la orden ${orderId}:`, err?.message ?? err);
@@ -49,6 +65,42 @@ app.use((req, res, next) => {
 });
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
+
+// Subida de fotos en memoria para el preview del Kit Mundial (máx. 5 imágenes, 12MB c/u).
+const uploadPreview = multer({
+  storage: multer.memoryStorage(),
+  limits: { files: 5, fileSize: 12 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => cb(null, /^image\//.test(file.mimetype)),
+});
+
+/**
+ * Genera el preview "Kit Mundial" con IA a partir de la/s foto/s de la mascota.
+ * Multipart: foto (una o varias), nombre_mascota, cantidad_mascotas, nombre_cliente.
+ * Devuelve { image: "data:image/png;base64,..." }. Guarda una copia nuestra en disco.
+ */
+app.post('/api/kit-preview', uploadPreview.array('foto', 5), async (req, res) => {
+  try {
+    if (!config.openaiApiKey) {
+      return res.status(503).json({ error: 'generación no disponible', code: 'NO_KEY' });
+    }
+    const files = req.files ?? [];
+    if (files.length === 0) return res.status(400).json({ error: 'Falta la foto.', code: 'NO_IMAGE' });
+
+    const petName = String(req.body?.nombre_mascota ?? '').slice(0, 120);
+    const count = String(req.body?.cantidad_mascotas ?? '');
+    const clientName = String(req.body?.nombre_cliente ?? '').slice(0, 120);
+    const ip = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '').toString();
+
+    const { b64, savedPath } = await generateKitPreview({ files, petName, count, clientName, ip });
+    console.log(`[kit-preview] generado para "${petName}" (${files.length} foto/s) → ${savedPath}`);
+    res.json({ image: `data:image/png;base64,${b64}` });
+  } catch (err) {
+    console.error('[kit-preview] error:', err?.message ?? err);
+    const code = err?.code ?? 'ERROR';
+    const status = code === 'NO_KEY' ? 503 : code === 'NO_IMAGE' ? 400 : 502;
+    res.status(status).json({ error: 'No se pudo generar el preview.', code });
+  }
+});
 
 // Clave pública para el front (Checkout Pro no la necesita, pero queda disponible).
 app.get('/api/config', (_req, res) => res.json({ publicKey: config.mpPublicKey, currency: config.currency }));
@@ -83,6 +135,94 @@ app.post('/api/checkout', async (req, res) => {
   } catch (err) {
     console.error('[checkout] error:', err?.message ?? err);
     res.status(400).json({ error: err?.message ?? 'No se pudo crear el checkout.' });
+  }
+});
+
+/**
+ * Checkout GENÉRICO para productos del catálogo físico (kits, productos sueltos, etc.).
+ * Los precios SIEMPRE se validan contra `src/data/shopProducts.json` (nunca se confía en el cliente).
+ *
+ * Body: { items: Array<{ id: string, quantity?: number }>, email: string }
+ * (También acepta { productId, quantity } por comodidad para un solo producto.)
+ * Devuelve { orderId, initPoint } para redirigir a Mercado Pago.
+ */
+app.post('/api/checkout/product', async (req, res) => {
+  try {
+    let { items, email, productId, quantity } = req.body ?? {};
+    // Atajo: un solo producto por { productId, quantity }.
+    if (!items && productId) items = [{ id: productId, quantity }];
+
+    if (typeof email !== 'string' || !EMAIL_RE.test(email)) {
+      return res.status(400).json({ error: 'Email inválido.' });
+    }
+
+    const { items: pricedItems, total } = priceShopItems(items);
+    const orderId = crypto.randomUUID();
+
+    const order = createOrder({
+      id: orderId,
+      email: email.trim().toLowerCase(),
+      items: pricedItems,
+      amount: total,
+      currency: config.currency,
+    });
+
+    const pref = await createPreference(order);
+    setOrderPreference(orderId, pref.id);
+
+    res.json({ orderId, initPoint: pref.initPoint });
+  } catch (err) {
+    console.error('[checkout/product] error:', err?.message ?? err);
+    res.status(400).json({ error: err?.message ?? 'No se pudo crear el checkout.' });
+  }
+});
+
+/**
+ * Link de pago a PRECIO NEGOCIADO (protegido con usuario/clave del panel).
+ * Pensado para el cierre MANUAL de Victoria: negocia por WhatsApp (bolsos a medida, kits
+ * personalizados) y genera un link de Mercado Pago con el monto acordado.
+ *
+ * Body: { title: string, amount: number, quantity?: number, email?: string, description?: string }
+ * Devuelve { orderId, initPoint }.
+ */
+app.post('/api/checkout/link', basicAuth, async (req, res) => {
+  try {
+    const { title, amount, quantity, email, description } = req.body ?? {};
+
+    const cleanTitle = String(title ?? '').trim();
+    if (!cleanTitle) return res.status(400).json({ error: 'Falta el título del producto.' });
+
+    const price = Math.trunc(Number(amount));
+    if (!Number.isFinite(price) || price <= 0) return res.status(400).json({ error: 'Monto inválido.' });
+    if (price > config.maxCustomAmountArs) {
+      return res.status(400).json({ error: `El monto supera el máximo permitido (${config.maxCustomAmountArs}).` });
+    }
+
+    const qty = Math.trunc(Number(quantity ?? 1));
+    if (!Number.isFinite(qty) || qty < 1 || qty > 20) return res.status(400).json({ error: 'Cantidad inválida.' });
+
+    // El email es opcional: si no lo pasan, se usa un placeholder y MP lo pide en el checkout.
+    const cleanEmail = typeof email === 'string' && EMAIL_RE.test(email) ? email.trim().toLowerCase() : 'sin-email@victoriacitro.net';
+
+    const orderId = crypto.randomUUID();
+    const item = { slug: 'custom', title: cleanTitle.slice(0, 200), price, quantity: qty };
+    if (description) item.description = String(description).slice(0, 500);
+
+    const order = createOrder({
+      id: orderId,
+      email: cleanEmail,
+      items: [item],
+      amount: price * qty,
+      currency: config.currency,
+    });
+
+    const pref = await createPreference(order);
+    setOrderPreference(orderId, pref.id);
+
+    res.json({ orderId, initPoint: pref.initPoint });
+  } catch (err) {
+    console.error('[checkout/link] error:', err?.message ?? err);
+    res.status(400).json({ error: err?.message ?? 'No se pudo crear el link de pago.' });
   }
 });
 
@@ -136,10 +276,13 @@ app.get('/api/order/:id', (req, res) => {
     downloads: [],
   };
   if (order.status === 'approved') {
-    response.downloads = order.items.map((i) => ({
-      title: i.title,
-      url: `${config.apiUrl}/api/download/${makeDownloadToken(order.id, i.slug)}`,
-    }));
+    // Sólo los ítems digitales (con archivo) generan links de descarga.
+    response.downloads = order.items
+      .filter((i) => i.file)
+      .map((i) => ({
+        title: i.title,
+        url: `${config.apiUrl}/api/download/${makeDownloadToken(order.id, i.slug)}`,
+      }));
     // Respaldo: si el webhook aprobó pero el email no salió, reintentar (no bloquea la respuesta).
     if (!order.email_sent) deliverEmailOnce(order.id);
   }
