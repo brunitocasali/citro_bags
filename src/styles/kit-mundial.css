@@ -254,6 +254,35 @@
   opacity: 0.92;
 }
 
+.km-hero__scene img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ejemplo real del kit (sección kits) */
+.km-example {
+  margin: 0 auto 2rem;
+  max-width: 720px;
+  text-align: center;
+}
+
+.km-example img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: var(--km-radius);
+  border: 1px solid var(--km-line-soft);
+  box-shadow: var(--km-shadow);
+}
+
+.km-example figcaption {
+  margin-top: 0.7rem;
+  font-size: 0.85rem;
+  color: var(--km-muted);
+}
+
 /* --------------------------------------------------------- buttons */
 .km [hidden] {
   display: none !important;
