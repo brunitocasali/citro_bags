@@ -9,32 +9,124 @@ import { config } from './config.mjs';
 const MAX_DIM = 2048;
 const JPEG_QUALITY = 85;
 
+// Marcas ISO-BMFF (ftyp) típicas de HEIC/HEIF de iPhone y variantes.
+const HEIC_BRANDS = new Set([
+  'heic', 'heix', 'heif', 'mif1', 'msf1', 'hevc', 'hevx', 'heim', 'heis', 'hevm', 'hevs',
+  'hvc1', 'hvi1', 'avif', 'avis', 'av01', 'avci', 'avcs',
+]);
+
+/** ¿El buffer tiene cabecera JPEG/PNG/WebP/GIF? (formato que OpenAI acepta directo) */
+function isKnownRaster(buf) {
+  if (!buf || buf.length < 12) return false;
+  if (buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return true; // JPEG
+  if (buf.toString('ascii', 0, 4) === '\x89PNG') return true;
+  if (buf.toString('ascii', 0, 4) === 'RIFF' && buf.toString('ascii', 8, 12) === 'WEBP') return true;
+  if (buf.toString('ascii', 0, 3) === 'GIF') return true;
+  return false;
+}
+
+/** Busca caja ftyp en los primeros bytes y devuelve major brand si parece HEIC/HEIF. */
+function sniffHeicBrand(buf) {
+  if (!buf || buf.length < 12) return null;
+
+  const checkAt = (brandOffset) => {
+    const major = buf.toString('ascii', brandOffset, brandOffset + 4).replace(/\0/g, '').toLowerCase();
+    if (HEIC_BRANDS.has(major)) return major;
+    for (let i = brandOffset + 8; i + 4 <= buf.length && i < brandOffset + 96; i += 4) {
+      const compat = buf.toString('ascii', i, i + 4).replace(/\0/g, '').toLowerCase();
+      if (HEIC_BRANDS.has(compat)) return compat;
+    }
+    return null;
+  };
+
+  if (buf.toString('ascii', 4, 8) === 'ftyp') {
+    const brand = checkAt(8);
+    if (brand) return brand;
+  }
+
+  for (let i = 0; i + 12 <= buf.length && i < 128; i += 1) {
+    if (buf.toString('ascii', i, i + 4) === 'ftyp') {
+      const brand = checkAt(i + 4);
+      if (brand) return brand;
+    }
+  }
+  return null;
+}
+
 /**
  * ¿El archivo es HEIC/HEIF? (fotos de iPhone). No confiamos solo en el mimetype
- * porque iPhone/Safari a veces lo mandan como application/octet-stream o vacío.
- * Chequeamos mimetype, extensión y "magic bytes" del contenedor ISO-BMFF (ftyp...).
+ * porque iPhone/Safari a veces lo mandan como application/octet-stream, vacío,
+ * o con nombre genérico sin extensión (.heic).
  */
 export function isHeic(file) {
   const mime = (file.mimetype || '').toLowerCase();
-  if (mime === 'image/heic' || mime === 'image/heif' || mime === 'image/heic-sequence' || mime === 'image/heif-sequence') {
+  if (
+    mime.includes('heic') ||
+    mime.includes('heif') ||
+    mime === 'image/heic-sequence' ||
+    mime === 'image/heif-sequence'
+  ) {
     return true;
   }
   const name = (file.originalname || '').toLowerCase();
-  if (/\.(heic|heif)$/.test(name)) return true;
+  if (/\.(heic|heif)$/i.test(name)) return true;
 
-  // Magic bytes: en un archivo HEIC/HEIF, los bytes 4..8 son "ftyp" y el "major brand"
-  // que sigue suele ser heic/heix/heif/mif1/msf1/hevc/hevx.
   const buf = file.buffer;
-  if (buf && buf.length >= 12) {
-    const ftyp = buf.toString('ascii', 4, 8);
-    if (ftyp === 'ftyp') {
-      const brand = buf.toString('ascii', 8, 12).toLowerCase();
-      if (['heic', 'heix', 'heif', 'mif1', 'msf1', 'hevc', 'hevx', 'heim', 'heis', 'hevm', 'hevs'].includes(brand)) {
-        return true;
-      }
-    }
+  if (sniffHeicBrand(buf)) return true;
+
+  // iPhone a veces manda octet-stream sin extensión pero el contenido es HEIC.
+  if (
+    buf &&
+    buf.length > 12 &&
+    !isKnownRaster(buf) &&
+    (mime === 'application/octet-stream' || mime === 'binary/octet-stream' || mime === '')
+  ) {
+    return Boolean(sniffHeicBrand(buf));
   }
   return false;
+}
+
+/** Log de diagnóstico para fotos de iPhone / Safari. */
+function logIncomingFile(file, index = 0) {
+  const buf = file.buffer;
+  const magic = buf && buf.length >= 4 ? buf.toString('hex', 0, Math.min(16, buf.length)) : 'n/a';
+  const brand = buf ? sniffHeicBrand(buf) : null;
+  const heic = isHeic(file);
+  console.log(
+    `[kit-preview] foto #${index + 1}: name="${file.originalname || ''}" mime="${file.mimetype || ''}" ` +
+      `size=${buf?.length ?? 0} magic=${magic} ftypBrand=${brand || '-'} isHeic=${heic}`
+  );
+}
+
+function toArrayBuffer(buf) {
+  return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+}
+
+/** Convierte HEIC/HEIF a JPEG con heic-convert; fallback a .all() si hace falta. */
+async function convertHeicToJpeg(buffer, label = 'foto') {
+  const input = toArrayBuffer(buffer);
+  try {
+    const out = await heicConvert({ buffer: input, format: 'JPEG', quality: 0.9 });
+    console.log(`[kit-preview] HEIC convertido OK ("${label}") → JPEG ${Buffer.from(out).length} bytes`);
+    return Buffer.from(out);
+  } catch (e1) {
+    console.warn(`[kit-preview] heic-convert directo falló ("${label}"):`, e1?.message ?? e1);
+    try {
+      const images = await heicConvert.all({ buffer: input, format: 'JPEG' });
+      if (images?.length) {
+        const out = await images[0].convert();
+        console.log(`[kit-preview] HEIC convertido OK vía .all() ("${label}") → JPEG ${Buffer.from(out).length} bytes`);
+        return Buffer.from(out);
+      }
+    } catch (e2) {
+      const err = new Error(`heic-convert: ${e1?.message ?? e1} | all: ${e2?.message ?? e2}`);
+      err.code = 'HEIC_CONVERT_ERROR';
+      throw err;
+    }
+    const err = new Error(`heic-convert: ${e1?.message ?? e1}`);
+    err.code = 'HEIC_CONVERT_ERROR';
+    throw err;
+  }
 }
 
 /**
@@ -45,27 +137,22 @@ export function isHeic(file) {
  * Todo pure-JS (heic-convert + jimp), sin binarios nativos.
  * Devuelve { buffer, mimetype, filename } coherentes con el buffer final.
  */
-export async function normalizeImage(file) {
+export async function normalizeImage(file, index = 0) {
+  logIncomingFile(file, index);
+
   const rawName = file.originalname || 'foto';
   const base = rawName.replace(/\.[^.]+$/, '') || 'foto';
 
   let working = file.buffer;
-  let mimetype = file.mimetype || 'image/png';
-  let filename = rawName.indexOf('.') >= 0 ? rawName : `${rawName}.png`;
+  let mimetype = file.mimetype || 'application/octet-stream';
+  let filename = rawName.indexOf('.') >= 0 ? rawName : `${rawName}.jpg`;
+  let heicDetected = isHeic(file);
 
-  // 1) HEIC/HEIF → JPEG
-  if (isHeic(file)) {
-    try {
-      const jpegBuffer = await heicConvert({ buffer: file.buffer, format: 'JPEG', quality: 0.9 });
-      working = Buffer.from(jpegBuffer);
-      mimetype = 'image/jpeg';
-      filename = `${base}.jpg`;
-      console.log(`[kit-preview] HEIC/HEIF detectado ("${rawName}") → convertido a JPEG`);
-    } catch (e) {
-      const err = new Error(`No se pudo convertir la foto HEIC: ${e?.message ?? e}`);
-      err.code = 'HEIC_CONVERT_ERROR';
-      throw err;
-    }
+  // 1) HEIC/HEIF → JPEG (iPhone)
+  if (heicDetected) {
+    working = await convertHeicToJpeg(working, rawName);
+    mimetype = 'image/jpeg';
+    filename = `${base}.jpg`;
   }
 
   // 2 + 3) resize (si hace falta) + re-encode a JPEG para bajar peso
@@ -80,11 +167,40 @@ export async function normalizeImage(file) {
     working = await img.getBuffer('image/jpeg', { quality: JPEG_QUALITY });
     mimetype = 'image/jpeg';
     filename = `${base}.jpg`;
-  } catch (e) {
-    // Si jimp no pudo leer/re-encodear (formato raro), mandamos lo que ya tengamos
-    // (el HEIC ya quedó convertido a JPEG arriba; un JPEG/PNG normal se manda tal cual).
-    console.warn(`[kit-preview] no se pudo redimensionar/re-encodear ("${rawName}"), se envía original:`, e?.message ?? e);
+  } catch (jimpErr) {
+    // Fallback: a veces iPhone manda octet-stream sin extensión; probamos HEIC aunque no lo hayamos detectado antes.
+    if (!heicDetected && sniffHeicBrand(working)) {
+      console.warn(`[kit-preview] jimp no leyó "${rawName}", reintento como HEIC:`, jimpErr?.message ?? jimpErr);
+      try {
+        working = await convertHeicToJpeg(working, rawName);
+        heicDetected = true;
+        const img = await Jimp.read(working);
+        const longest = Math.max(img.width, img.height);
+        if (longest > MAX_DIM) {
+          const scale = MAX_DIM / longest;
+          img.resize({ w: Math.round(img.width * scale), h: Math.round(img.height * scale) });
+        }
+        working = await img.getBuffer('image/jpeg', { quality: JPEG_QUALITY });
+        mimetype = 'image/jpeg';
+        filename = `${base}.jpg`;
+      } catch (e) {
+        const err = new Error(`No se pudo procesar la foto (HEIC/iPhone): ${e?.message ?? e}`);
+        err.code = 'HEIC_CONVERT_ERROR';
+        throw err;
+      }
+    } else if (heicDetected) {
+      const err = new Error(`HEIC convertido pero jimp no pudo leer el JPEG: ${jimpErr?.message ?? jimpErr}`);
+      err.code = 'HEIC_CONVERT_ERROR';
+      throw err;
+    } else {
+      console.warn(`[kit-preview] no se pudo leer/re-encodear ("${rawName}"), se envía original:`, jimpErr?.message ?? jimpErr);
+    }
   }
+
+  console.log(
+    `[kit-preview] foto #${index + 1} lista → ${filename} ${mimetype} ${working.length} bytes` +
+      (heicDetected ? ' (desde HEIC)' : '')
+  );
 
   return { buffer: working, mimetype, filename };
 }
@@ -183,8 +299,8 @@ export async function generateKitPreview({ files, petName, count, clientName, ip
 
   // Normalizamos cada foto: HEIC→JPEG + resize ≤2048px + re-encode JPEG (sirve de cualquier teléfono).
   const prepared = [];
-  for (const f of files.slice(0, 5)) {
-    prepared.push(await normalizeImage(f));
+  for (let i = 0; i < files.slice(0, 5).length; i++) {
+    prepared.push(await normalizeImage(files[i], i));
   }
 
   const fd = new FormData();

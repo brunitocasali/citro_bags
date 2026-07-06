@@ -155,8 +155,8 @@ import '../styles/kit-mundial.css';
 											><path d="M12 16V4m0 0L8 8m4-4l4 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke-linecap="round"/></svg>
 									</div>
 									<p class="km-drop__title" id="km-drop-title">Tocá para subir la foto de tu mascota</p>
-									<p class="km-drop__hint">JPG o PNG · de frente, con buena luz y sin flash</p>
-									<input id="km-files" type="file" accept="image/*,.heic,.heif" multiple hidden />
+									<p class="km-drop__hint">JPG, PNG o HEIC (iPhone) · de frente, con buena luz</p>
+									<input id="km-files" type="file" accept="image/*,.heic,.heif,image/heic,image/heif" multiple hidden />
 								</div>
 								<div class="km-thumbs" id="km-thumbs"></div>
 
@@ -248,7 +248,8 @@ import '../styles/kit-mundial.css';
 							</div>
 							<h3 class="km-errbox__title">Uy, ahora no pudimos generar tu vista previa 😔</h3>
 							<p class="km-errbox__text" id="km-errbox-text">
-								Puede ser algo temporal. Probá de nuevo en un ratito — o mandanos la foto de
+								Puede ser algo temporal. Si es una foto de iPhone, probá en Ajustes → Cámara → Formatos →
+								"Más compatible", o mandanos la foto de
 								<span id="km-errbox-name">tu mascota</span> directo por WhatsApp y Victoria te prepara el diseño a mano. 💛
 							</p>
 							<div class="km-errbox__actions">
@@ -459,16 +460,74 @@ import '../styles/kit-mundial.css';
 			// ---------------- files ----------------
 			function humanSize(bytes) { return (bytes / (1024 * 1024)).toFixed(1) + ' MB'; }
 
+			// ¿Parece HEIC/HEIF? (iPhone)
+			function isHeicFile(f) {
+				var mime = (f.type || '').toLowerCase();
+				var name = (f.name || '').toLowerCase();
+				return /\.(heic|heif)$/i.test(name) || mime.indexOf('heic') >= 0 || mime.indexOf('heif') >= 0;
+			}
+
+			function isIosSafari() {
+				var ua = navigator.userAgent || '';
+				return /iPhone|iPad|iPod/i.test(ua) || (/Safari/i.test(ua) && /Apple/i.test(navigator.vendor || ''));
+			}
+
+			function isKnownRasterFile(f) {
+				var mime = (f.type || '').toLowerCase();
+				var name = (f.name || '').toLowerCase();
+				if (/^image\/(jpe?g|png|webp|gif)$/i.test(mime)) return true;
+				return /\.(jpe?g|png|webp|gif)$/i.test(name);
+			}
+
+			// Safari/iOS puede decodificar HEIC en <img> → lo convertimos a JPEG antes de subir.
+			// También probamos en iOS fotos con mime vacío/octet-stream sin extensión (.heic).
+			function convertHeicViaCanvas(file) {
+				return new Promise(function (resolve) {
+					var shouldTry = isHeicFile(file) || (isIosSafari() && !isKnownRasterFile(file));
+					if (!shouldTry) { resolve(file); return; }
+					var url = URL.createObjectURL(file);
+					var img = new Image();
+					img.onload = function () {
+						try {
+							var w = img.naturalWidth || img.width;
+							var h = img.naturalHeight || img.height;
+							if (!w || !h) { URL.revokeObjectURL(url); resolve(file); return; }
+							var c = document.createElement('canvas');
+							c.width = w;
+							c.height = h;
+							c.getContext('2d').drawImage(img, 0, 0);
+							URL.revokeObjectURL(url);
+							c.toBlob(function (blob) {
+								if (!blob) { resolve(file); return; }
+								var base = (file.name || 'foto').replace(/\.(heic|heif)$/i, '') || 'foto';
+								resolve(new File([blob], base + '.jpg', { type: 'image/jpeg', lastModified: file.lastModified || Date.now() }));
+							}, 'image/jpeg', 0.92);
+						} catch (e) {
+							URL.revokeObjectURL(url);
+							resolve(file);
+						}
+					};
+					img.onerror = function () { URL.revokeObjectURL(url); resolve(file); };
+					img.src = url;
+				});
+			}
+
 			function addFiles(list) {
 				setError(1, '');
 				var incoming = Array.prototype.slice.call(list || []);
 				for (var i = 0; i < incoming.length; i++) {
 					var f = incoming[i];
-					// Permitimos imágenes y también HEIC/HEIF de iPhone (Safari a veces reporta
-					// el type vacío o "application/octet-stream"; el backend las convierte a JPEG).
-					var isImageType = /^image\//.test(f.type);
+					var mime = (f.type || '').toLowerCase();
+					// iPhone/Safari: type vacío, octet-stream, o HEIC sin extensión clara.
+					var isImageType = /^image\//.test(mime);
 					var isHeicName = /\.(heic|heif)$/i.test(f.name || '');
-					if (!isImageType && !isHeicName) { setError(1, 'Ese archivo no es una imagen. Subí una foto (JPG, PNG o HEIC).'); continue; }
+					var isPhotoName = /\.(jpe?g|png|webp|gif|heic|heif)$/i.test(f.name || '');
+					var isOctet = !mime || mime === 'application/octet-stream' || mime === 'binary/octet-stream';
+					var isLikelyPhoto = isImageType || isHeicName || isPhotoName || (isOctet && f.size > 8000);
+					if (!isLikelyPhoto) {
+						setError(1, 'Ese archivo no es una imagen. Subí una foto (JPG, PNG o HEIC de iPhone).');
+						continue;
+					}
 					if (f.size > MAX_SIZE_MB * 1024 * 1024) { setError(1, 'La foto pesa más de ' + MAX_SIZE_MB + ' MB (' + humanSize(f.size) + '). Probá con una más liviana.'); continue; }
 					if (state.files.length >= MAX_FILES) { setError(1, 'Máximo ' + MAX_FILES + ' fotos.'); break; }
 					state.files.push(f);
@@ -601,8 +660,9 @@ import '../styles/kit-mundial.css';
 			}
 
 			// Muestra un mensaje de error CLARO en pantalla (no redirige en silencio).
-			function showError() {
+			function showError(serverMsg) {
 				if (errboxName) errboxName.textContent = val('#km-nombre-mascota') || 'tu mascota';
+				if (errboxText && serverMsg) errboxText.textContent = serverMsg;
 				hideAll();
 				if (errboxEl) {
 					errboxEl.classList.add('is-active');
@@ -642,13 +702,20 @@ import '../styles/kit-mundial.css';
 				submitBtn.disabled = true;
 				showLoading();
 
-				var fd = new FormData();
-				fd.append('cantidad_mascotas', isVarias() ? 'varias' : 'una');
-				fd.append('nombre_mascota', val('#km-nombre-mascota'));
-				fd.append('nombre_cliente', val('#km-nombre'));
-				state.files.forEach(function (f) { fd.append('foto', f, f.name); });
-
-				fetch(API_BASE + '/api/kit-preview', { method: 'POST', body: fd })
+				// En iPhone/Safari, convertimos HEIC a JPEG en el navegador si se puede (más confiable).
+				Promise.all(state.files.map(convertHeicViaCanvas))
+					.then(function (preparedFiles) {
+						var fd = new FormData();
+						fd.append('cantidad_mascotas', isVarias() ? 'varias' : 'una');
+						fd.append('nombre_mascota', val('#km-nombre-mascota'));
+						fd.append('nombre_cliente', val('#km-nombre'));
+						preparedFiles.forEach(function (f) {
+							var name = f.name || 'foto.jpg';
+							if (!/\.(jpe?g|png|webp|gif|heic|heif)$/i.test(name)) name = name + '.jpg';
+							fd.append('foto', f, name);
+						});
+						return fetch(API_BASE + '/api/kit-preview', { method: 'POST', body: fd });
+					})
 					.then(function (r) {
 						return r.json().catch(function () { return {}; }).then(function (data) {
 							return { ok: r.ok, status: r.status, data: data || {} };
@@ -658,18 +725,14 @@ import '../styles/kit-mundial.css';
 						if (res.ok && res.data && res.data.image) {
 							showResult(res.data.image);
 						} else if (res.status === 503) {
-							// La generación automática no está disponible (sin API key):
-							// el mejor camino es que el cliente mande la foto por WhatsApp.
 							showSuccess();
 						} else {
-							// Error real de generación (OpenAI caído, sin crédito, etc.):
-							// mostramos un mensaje CLARO en pantalla, sin redirigir en silencio.
-							showError();
+							var msg = (res.data && res.data.error) ? res.data.error : null;
+							showError(msg);
 						}
 					})
 					.catch(function () {
-						// Backend caído o sin conexión → mensaje claro + opción WhatsApp.
-						showError();
+						showError(null);
 					})
 					.finally(function () {
 						state.sending = false;

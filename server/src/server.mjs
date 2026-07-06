@@ -67,17 +67,24 @@ app.use((req, res, next) => {
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
 // Subida de fotos en memoria para el preview del Kit Mundial (máx. 5 imágenes, 20MB c/u).
-// El límite es generoso porque comprimimos/redimensionamos server-side antes de OpenAI
-// (fotos grandes de iPhone/Android entran igual). Aceptamos image/* y también HEIC/HEIF
-// de iPhone (Safari a veces manda mimetype raro, ej. application/octet-stream, así que
-// también dejamos pasar por extensión .heic/.heif).
+// Aceptamos image/*, application/octet-stream (iPhone/Safari HEIC sin extensión clara),
+// y extensiones de foto comunes. La validación real la hace normalizeImage (magic bytes).
 const uploadPreview = multer({
   storage: multer.memoryStorage(),
   limits: { files: 5, fileSize: 20 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
-    const okMime = /^image\//i.test(file.mimetype || '');
-    const okExt = /\.(heic|heif)$/i.test(file.originalname || '');
-    cb(null, okMime || okExt);
+    const mime = (file.mimetype || '').toLowerCase();
+    const name = (file.originalname || '').toLowerCase();
+    const okMime =
+      /^image\//i.test(mime) ||
+      mime.includes('heic') ||
+      mime.includes('heif') ||
+      mime === 'application/octet-stream' ||
+      mime === 'binary/octet-stream' ||
+      mime === '';
+    const okExt = /\.(heic|heif|jpe?g|png|webp|gif)$/i.test(name);
+    const okIphoneName = /^(img_|photo|image|pict)/i.test(name) && (mime === '' || mime.includes('octet-stream'));
+    cb(null, okMime || okExt || okIphoneName);
   },
 });
 
@@ -86,18 +93,40 @@ const uploadPreview = multer({
  * Multipart: foto (una o varias), nombre_mascota, cantidad_mascotas, nombre_cliente.
  * Devuelve { image: "data:image/png;base64,..." }. Guarda una copia nuestra en disco.
  */
-app.post('/api/kit-preview', uploadPreview.array('foto', 5), async (req, res) => {
+app.post('/api/kit-preview', (req, res, next) => {
+  uploadPreview.array('foto', 5)(req, res, (err) => {
+    if (err) {
+      console.error('[kit-preview] multer error:', err.code, err.message);
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({
+          error: 'La foto pesa demasiado (máx. 20 MB). Probá con otra más liviana.',
+          code: 'FILE_TOO_LARGE',
+        });
+      }
+      return res.status(400).json({ error: 'No se pudo subir la foto.', code: 'UPLOAD_ERROR' });
+    }
+    next();
+  });
+}, async (req, res) => {
   try {
     if (!config.openaiApiKey) {
       return res.status(503).json({ error: 'generación no disponible', code: 'NO_KEY' });
     }
     const files = req.files ?? [];
-    if (files.length === 0) return res.status(400).json({ error: 'Falta la foto.', code: 'NO_IMAGE' });
+    if (files.length === 0) {
+      console.warn('[kit-preview] POST sin archivos (¿multer rechazó el upload de iPhone?)');
+      return res.status(400).json({
+        error: 'No llegó la foto. Si es de iPhone, probá de nuevo o mandala por WhatsApp.',
+        code: 'NO_IMAGE',
+      });
+    }
 
     const petName = String(req.body?.nombre_mascota ?? '').slice(0, 120);
     const count = String(req.body?.cantidad_mascotas ?? '');
     const clientName = String(req.body?.nombre_cliente ?? '').slice(0, 120);
     const ip = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '').toString();
+    const ua = String(req.headers['user-agent'] ?? '').slice(0, 120);
+    console.log(`[kit-preview] request pet="${petName}" files=${files.length} ua="${ua}"`);
 
     const { b64, savedPath } = await generateKitPreview({ files, petName, count, clientName, ip });
     console.log(`[kit-preview] generado para "${petName}" (${files.length} foto/s) → ${savedPath}`);
@@ -106,9 +135,11 @@ app.post('/api/kit-preview', uploadPreview.array('foto', 5), async (req, res) =>
     console.error('[kit-preview] error:', err?.message ?? err);
     const code = err?.code ?? 'ERROR';
     if (code === 'HEIC_CONVERT_ERROR') {
-      return res
-        .status(400)
-        .json({ error: 'No pudimos procesar esa foto. Probá con otra (o sacale una captura).', code });
+      return res.status(400).json({
+        error:
+          'No pudimos procesar esa foto de iPhone. Probá en Ajustes → Cámara → Formatos → "Más compatible", o mandanos la foto por WhatsApp.',
+        code,
+      });
     }
     const status = code === 'NO_KEY' ? 503 : code === 'NO_IMAGE' ? 400 : 502;
     res.status(status).json({ error: 'No se pudo generar el preview.', code });
