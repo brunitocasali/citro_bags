@@ -21,6 +21,10 @@ Aprendizajes ya validados que se aplican acá:
 2. **Fotos de baja calidad / a distancia** (el caso real más común): se agrega una regla para
    priorizar patrón de color y siluetas reconocibles por sobre el detalle fino.
 3. **Fidelidad primero**: si el animal no se reconoce, el preview no sirve, por más lindo que sea.
+4. **Anatomía (v2)**: tras reportes de perros con 3 patas / deformaciones, el prompt ahora pone
+   la anatomía correcta como PRIORIDAD MÁXIMA (4 patas, 1 cola, 2 ojos, 2 orejas), usa poses más
+   simples y claras, y lista errores a evitar. Se combina con **calidad "high"** (menos errores)
+   manteniendo el modelo económico `gpt-image-1-mini`.
 
 ---
 
@@ -36,71 +40,84 @@ Aprendizajes ya validados que se aplican acá:
 
 ---
 
-## 2. Prompt maestro (versión Kit Mundial — v1 para calibrar)
+## 2. Prompt maestro (versión Kit Mundial — v2, anti-errores anatómicos)
+
+> Sincronizado con el prompt real del código (`server/src/kitPreview.mjs`, función `buildPrompt`).
+> **v2** agrega barreras fuertes de anatomía (4 patas, 1 cola, 2 ojos, 2 orejas) y poses más
+> simples/claras, tras reportes de perros con 3 patas / deformaciones. Va acompañado de subir la
+> **calidad a "high"** (menos errores) manteniendo el modelo económico `gpt-image-1-mini`.
 
 ```text
 Usar la foto subida como referencia principal de la mascota o mascotas.
 
-Respetar al máximo la identidad real de cada animal:
-cara, ojos, hocico, orejas, manchas, color del pelaje, textura, expresión, tamaño y
-proporciones. No cambiar la raza. No inventar otra mascota. No hacerla genérica.
-No modificar rasgos importantes.
+PRIORIDAD MÁXIMA — ANATOMÍA CORRECTA Y REALISTA (esto es lo más importante de todo):
+Cada mascota ilustrada debe tener anatomía natural, correcta y creíble, exactamente como un
+animal real:
+- Exactamente CUATRO (4) patas, ni más ni menos.
+- Exactamente UNA (1) cola.
+- Exactamente DOS (2) ojos, bien ubicados y simétricos.
+- Exactamente DOS (2) orejas.
+- Una (1) sola cabeza y un (1) solo cuerpo, con proporciones naturales de la raza.
+Está TERMINANTEMENTE PROHIBIDO: patas de más o de menos, ojos de más, orejas de más, colas de
+más, dedos o garras extra, miembros fusionados o pegados, extremidades torcidas en ángulos
+imposibles, cuerpos deformados, caras derretidas o distorsionadas, rasgos duplicados. Si una
+pose es difícil, elegir una pose más simple y clara antes que arriesgar un error anatómico.
+Preferir poses simples, estables y de frente, con el cuerpo completo y las patas bien visibles.
 
-Si la foto de referencia es de baja calidad, a distancia o con reflejos, priorizar el
-patrón de color y las siluetas reconocibles de cada mascota por sobre el detalle fino;
-nunca inventar una mascota distinta.
+Respetar al máximo la identidad real de cada animal: cara, ojos, hocico, orejas, manchas,
+color y patrón exacto del pelaje, textura, expresión, tamaño y proporciones. No cambiar la
+raza. No inventar otra mascota. No hacerla genérica. La MISMA mascota debe verse claramente
+reconocible y consistente (mismo color, manchas y expresión) en TODOS los productos del kit.
 
-Crear una preview / mockup completa estilo "Kit Hincha de Argentina" en una sola escena
-cálida, premium y comercial, lista para mostrar al cliente. Escena horizontal, estética
-boutique cálida: mesa de madera, luz suave, fondo acogedor, plantas, decoración sutil,
-tonos naturales y aspecto profesional de tienda online.
+Si la foto de referencia es de baja calidad, a distancia o con reflejos, priorizar el patrón
+de color y las siluetas reconocibles por sobre el detalle fino; nunca inventar una mascota
+distinta y nunca sacrificar la anatomía correcta.
+
+Crear una preview / mockup completa estilo "Kit Hincha de Argentina" en una sola escena cálida,
+premium y comercial. Escena horizontal, estética boutique cálida: mesa de madera, luz suave,
+fondo acogedor, plantas, decoración sutil, tonos naturales, aspecto profesional de tienda.
 
 NO hacer collage dividido en cuadros. Mostrar juntos estos productos en una sola escena:
-
 1. Remera blanca colgada en percha de madera.
 2. Tote bag color natural.
 3. Taza blanca.
 4. Cuadro enmarcado grande.
 5. Gorra blanca con visera celeste/azul, apoyada como producto físico sobre la mesa.
 
-Cada producto lleva una ilustración diferente de la misma mascota (o grupo de mascotas) en
-versión hincha de Argentina:
+Cada producto lleva una ilustración de la misma mascota en versión hincha de Argentina, con
+poses SIMPLES y CLARAS que dejen ver bien la anatomía completa:
+REMERA: la mascota sentada o de pie, de frente, con camiseta argentina celeste y blanca y una
+pelota al lado. Centrada, con las cuatro patas visibles, respetando márgenes de impresión.
+TOTE: la mascota sentada de frente con una pequeña bandera argentina como capa, pose tranquila.
+TAZA: retrato de medio cuerpo junto a una copa dorada estilo trofeo (sin poses forzadas).
+CUADRO: la mascota de cuerpo entero, de pie y de frente o en pose calma, 4 patas bien visibles.
+GORRA: retrato simple de la cabeza/busto con detalles celestes y blancos.
 
-REMERA: la mascota con camiseta argentina celeste y blanca, con una pelota de fútbol cerca.
-Una sola ilustración centrada, respetando área real de impresión y márgenes blancos.
-TOTE: la mascota con bandera argentina como capa, en pose tierna de hincha.
-TAZA: la mascota abrazando o sosteniendo una copa dorada estilo trofeo.
-CUADRO: la mascota en pose más dinámica (corriendo, festejando o jugando con pelota).
-GORRA: retrato simple de la mascota con detalles celestes y blancos.
+Estilo: acuarela premium, tierna y realista. Salpicaduras celestes y blancas detrás. Toques
+dorados sutiles. Huellitas o corazones pequeños si quedan bien. Impreso de forma realista.
+Nombre de la mascota debajo de cada diseño en tipografía script azul (texto exacto del cliente).
 
-Estilo de ilustración:
-Acuarela premium, tierna y realista. Salpicaduras celestes y blancas detrás de la mascota.
-Toques dorados sutiles. Huellitas o corazones pequeños si quedan bien.
-Nombre de la mascota escrito debajo de cada diseño en tipografía script azul.
-El diseño debe verse impreso de forma realista sobre cada producto.
+Tema Argentina: camiseta celeste y blanca; bandera argentina como capa; pelota; copa dorada;
+puede incluir sol argentino. No usar marcas deportivas oficiales.
 
-Tema Argentina:
-Camiseta celeste y blanca; bandera argentina como capa en un diseño; pelota de fútbol;
-copa dorada; puede incluir sol argentino decorativo. No usar marcas deportivas oficiales.
+EVITAR EXPLÍCITAMENTE: perros o gatos con tres o cinco patas, patas/ojos/orejas extra, dos
+colas, dedos o garras de más, patas fusionadas, extremidades deformes o en ángulos imposibles,
+animal derretido o distorsionado, dos cabezas, rasgos duplicados, mezcla de dos animales,
+cuerpo humano, manos humanas.
 
-Reglas importantes:
-No collage separado en cuadrados. No agregar almohadón ni productos extra.
-No repetir exactamente la misma pose en todos los productos. No poner cuerpo humano.
-No deformar anatomía. No agregar patas ni ojos extra. No cambiar la raza.
-No hacer el diseño demasiado grande en la remera. No tapar rasgos importantes.
-Mantener área de impresión realista en cada producto.
-La gorra es un producto físico dentro del mockup, no puesta en la cabeza del animal.
-El cuadro debe verse grande y claro.
+Reglas: No collage en cuadrados. No productos extra. Variar levemente el encuadre entre
+productos pero SIEMPRE con anatomía correcta (4 patas, 1 cola, 2 ojos, 2 orejas en cada uno).
+No cuerpo humano. No cambiar la raza. Diseño no gigante en la remera. Área de impresión
+realista. La gorra es un producto físico sobre la mesa, no en la cabeza del animal. Cuadro
+grande y claro.
 
-Si hay más de una mascota (hasta 5):
-Deben aparecer todas juntas en cada producto. Respetar cuál es cada una según las fotos.
-Mantener diferencias reales: color, tamaño, manchas, orejas, expresión, pelaje, proporciones.
-No agregar ni eliminar mascotas. No confundir los nombres.
-El texto debe decir exactamente los nombres indicados por el cliente.
+Si hay más de una mascota (hasta 5): todas juntas en cada producto, cada una con su anatomía
+correcta y sus rasgos reales (color, tamaño, manchas, orejas, expresión). No fusionar mascotas
+entre sí. No agregar ni quitar mascotas. No confundir los nombres.
 
-Resultado final:
-Una imagen de preview premium, cálida y comercial, con el kit completo personalizado de la
-mascota o mascotas como hinchas de Argentina, con todos los productos juntos en una sola escena.
+Resultado final: preview premium, cálida y comercial, con el kit completo personalizado como
+hinchas de Argentina, todos los productos en una sola escena, y con la anatomía de cada animal
+perfectamente correcta y realista.
 ```
 
 > Nota: la **marca de agua CITRO** se agrega por software en la entrega, NO en este prompt.

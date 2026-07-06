@@ -68,8 +68,10 @@ export const config = {
   // discontinúa el 23-oct-2026). Calidad "medium" = buen equilibrio costo/calidad.
   openaiImageModel: process.env.OPENAI_IMAGE_MODEL ?? 'gpt-image-1-mini',
   openaiImageSize: process.env.OPENAI_IMAGE_SIZE ?? '1536x1024',
-  // Calidad de render: 'low' | 'medium' | 'high'. Más alta = más cara y más lenta.
-  openaiImageQuality: process.env.OPENAI_IMAGE_QUALITY ?? 'medium',
+  // Calidad de render: 'low' | 'medium' | 'high'. Más alta = más cara y más lenta, pero
+  // reduce errores anatómicos (patas/ojos de más, deformaciones). Default 'high' con el
+  // modelo económico gpt-image-1-mini (~$0.05/img a 1536x1024).
+  openaiImageQuality: process.env.OPENAI_IMAGE_QUALITY ?? 'high',
   // Carpeta donde guardamos cada preview generado (nuestro archivo de respaldo).
   kitPreviewsDir: process.env.KIT_PREVIEWS_DIR
     ? resolve(process.env.KIT_PREVIEWS_DIR)
