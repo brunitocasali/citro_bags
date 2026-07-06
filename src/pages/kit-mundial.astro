@@ -531,13 +531,19 @@ import '../styles/kit-mundial.css';
 			function openWhatsApp(withDesign) {
 				var yo = val('#km-nombre');
 				var mascota = val('#km-nombre-mascota') || 'mi mascota';
+				// Emojis como escapes unicode ASCII: así sobreviven a cualquier problema de
+				// charset al servir la página (si quedaran como literales y el host sirviera
+				// el HTML como no-UTF-8, los emojis del plano astral llegan rotos a WhatsApp).
+				var PAW = String.fromCodePoint(0x1f43e); // 🐾
+				var FLAG_AR = String.fromCodePoint(0x1f1e6, 0x1f1f7); // 🇦🇷
+				var CLIP = String.fromCodePoint(0x1f4ce); // 📎
 				var lines = [
-					(yo ? '¡Hola! Soy ' + yo + '. ' : '¡Hola! ') + 'Quiero el Kit Mundial 🐾🇦🇷',
+					(yo ? '¡Hola! Soy ' + yo + '. ' : '¡Hola! ') + 'Quiero el Kit Mundial ' + PAW + FLAG_AR,
 					(isVarias() ? 'Mis mascotas: ' : 'Mi mascota: ') + mascota,
 					'',
 					withDesign
-						? 'Te adjunto el diseño que generé en la web 📎'
-						: 'Te adjunto la foto de mi mascota 📎',
+						? 'Te adjunto el diseño que generé en la web ' + CLIP
+						: 'Te adjunto la foto de mi mascota ' + CLIP,
 				];
 				var url = 'https://wa.me/' + WHATSAPP_NUMBER + '?text=' + encodeURIComponent(lines.join('\n'));
 				window.open(url, '_blank');
