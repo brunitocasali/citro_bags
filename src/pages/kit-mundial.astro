@@ -368,6 +368,7 @@ import '../styles/kit-mundial.css';
 					: '';
 			var MAX_FILES = 5;
 			var MAX_SIZE_MB = 20;
+			var FETCH_TIMEOUT_MS = 180000; // 3 min — alineado con nginx proxy_read_timeout y OpenAI
 			// ============================================
 
 			var form = document.getElementById('km-form');
@@ -460,65 +461,110 @@ import '../styles/kit-mundial.css';
 			// ---------------- files ----------------
 			function humanSize(bytes) { return (bytes / (1024 * 1024)).toFixed(1) + ' MB'; }
 
-			// ¿Parece HEIC/HEIF? (iPhone)
-			function isHeicFile(f) {
-				var mime = (f.type || '').toLowerCase();
-				var name = (f.name || '').toLowerCase();
-				return /\.(heic|heif)$/i.test(name) || mime.indexOf('heic') >= 0 || mime.indexOf('heif') >= 0;
-			}
-
 			function isIosSafari() {
 				var ua = navigator.userAgent || '';
 				return /iPhone|iPad|iPod/i.test(ua) || (/Safari/i.test(ua) && /Apple/i.test(navigator.vendor || ''));
 			}
 
-			function isKnownRasterFile(f) {
+			function isJpegFile(f) {
 				var mime = (f.type || '').toLowerCase();
 				var name = (f.name || '').toLowerCase();
-				if (/^image\/(jpe?g|png|webp|gif)$/i.test(mime)) return true;
-				return /\.(jpe?g|png|webp|gif)$/i.test(name);
+				return mime === 'image/jpeg' || mime === 'image/jpg' || /\.jpe?g$/i.test(name);
 			}
 
-			// Safari/iOS puede decodificar HEIC en <img> → lo convertimos a JPEG antes de subir.
-			// También probamos en iOS fotos con mime vacío/octet-stream sin extensión (.heic).
-			function convertHeicViaCanvas(file) {
-				return new Promise(function (resolve) {
-					var shouldTry = isHeicFile(file) || (isIosSafari() && !isKnownRasterFile(file));
-					if (!shouldTry) { resolve(file); return; }
+			function isHeicLike(f) {
+				var mime = (f.type || '').toLowerCase();
+				var name = (f.name || '').toLowerCase();
+				return /\.(heic|heif)$/i.test(name) || mime.indexOf('heic') >= 0 || mime.indexOf('heif') >= 0;
+			}
+
+			/**
+			 * En iPhone/Safari: re-codificamos TODA foto vía canvas → JPEG liviano.
+			 * Si falla, rechazamos (no mandamos HEIC crudo al server — falla en ~10s).
+			 */
+			function convertPhotoForUpload(file) {
+				return new Promise(function (resolve, reject) {
+					if (!isIosSafari()) { resolve(file); return; }
 					var url = URL.createObjectURL(file);
 					var img = new Image();
+					var settled = false;
+					var loadTimer = setTimeout(function () {
+						if (settled) return;
+						settled = true;
+						URL.revokeObjectURL(url);
+						reject(new Error('timeout'));
+					}, 30000);
+					function done(err, result) {
+						if (settled) return;
+						settled = true;
+						clearTimeout(loadTimer);
+						URL.revokeObjectURL(url);
+						if (err) reject(err);
+						else resolve(result);
+					}
 					img.onload = function () {
 						try {
 							var w = img.naturalWidth || img.width;
 							var h = img.naturalHeight || img.height;
-							if (!w || !h) { URL.revokeObjectURL(url); resolve(file); return; }
+							if (!w || !h) { done(new Error('no-dimensions')); return; }
+							var maxDim = 2048;
+							if (Math.max(w, h) > maxDim) {
+								var scale = maxDim / Math.max(w, h);
+								w = Math.round(w * scale);
+								h = Math.round(h * scale);
+							}
 							var c = document.createElement('canvas');
 							c.width = w;
 							c.height = h;
-							c.getContext('2d').drawImage(img, 0, 0);
-							URL.revokeObjectURL(url);
+							c.getContext('2d').drawImage(img, 0, 0, w, h);
 							c.toBlob(function (blob) {
-								if (!blob) { resolve(file); return; }
-								var base = (file.name || 'foto').replace(/\.(heic|heif)$/i, '') || 'foto';
-								resolve(new File([blob], base + '.jpg', { type: 'image/jpeg', lastModified: file.lastModified || Date.now() }));
-							}, 'image/jpeg', 0.92);
+								if (!blob) { done(new Error('no-blob')); return; }
+								var base = (file.name || 'foto').replace(/\.[^.]+$/i, '') || 'foto';
+								done(null, new File([blob], base + '.jpg', { type: 'image/jpeg', lastModified: Date.now() }));
+							}, 'image/jpeg', 0.88);
 						} catch (e) {
-							URL.revokeObjectURL(url);
-							resolve(file);
+							done(e);
 						}
 					};
-					img.onerror = function () { URL.revokeObjectURL(url); resolve(file); };
+					img.onerror = function () { done(new Error('img-error')); };
 					img.src = url;
 				});
+			}
+
+			function iosPhotoNotReadyMsg() {
+				return 'No pudimos preparar la foto en tu iPhone. Probá Ajustes → Cámara → Formatos → "Más compatible", o mandanos la foto por WhatsApp.';
+			}
+
+			function ensureIosJpegFiles(files) {
+				if (!isIosSafari()) return null;
+				for (var i = 0; i < files.length; i++) {
+					if (!isJpegFile(files[i]) || isHeicLike(files[i])) return iosPhotoNotReadyMsg();
+				}
+				return null;
+			}
+
+			function fetchWithTimeout(url, options, ms) {
+				var controller = new AbortController();
+				var timer = setTimeout(function () { controller.abort(); }, ms);
+				return fetch(url, Object.assign({}, options || {}, { signal: controller.signal }))
+					.finally(function () { clearTimeout(timer); });
+			}
+
+			function errorMessageForResponse(status, data) {
+				if (data && data.error) return data.error;
+				if (status === 413) return 'La foto es muy pesada para el servidor. Probá con WiFi o mandala por WhatsApp.';
+				if (status === 502 || status === 504) return 'El servidor tardó demasiado. Probá de nuevo con WiFi (puede tardar hasta 2 minutos).';
+				if (status === 0) return 'No pudimos conectar. Revisá tu señal o probá con WiFi.';
+				return null;
 			}
 
 			function addFiles(list) {
 				setError(1, '');
 				var incoming = Array.prototype.slice.call(list || []);
+				var valid = [];
 				for (var i = 0; i < incoming.length; i++) {
 					var f = incoming[i];
 					var mime = (f.type || '').toLowerCase();
-					// iPhone/Safari: type vacío, octet-stream, o HEIC sin extensión clara.
 					var isImageType = /^image\//.test(mime);
 					var isHeicName = /\.(heic|heif)$/i.test(f.name || '');
 					var isPhotoName = /\.(jpe?g|png|webp|gif|heic|heif)$/i.test(f.name || '');
@@ -529,10 +575,23 @@ import '../styles/kit-mundial.css';
 						continue;
 					}
 					if (f.size > MAX_SIZE_MB * 1024 * 1024) { setError(1, 'La foto pesa más de ' + MAX_SIZE_MB + ' MB (' + humanSize(f.size) + '). Probá con una más liviana.'); continue; }
-					if (state.files.length >= MAX_FILES) { setError(1, 'Máximo ' + MAX_FILES + ' fotos.'); break; }
-					state.files.push(f);
+					if (state.files.length + valid.length >= MAX_FILES) { setError(1, 'Máximo ' + MAX_FILES + ' fotos.'); break; }
+					valid.push(f);
 				}
-				renderThumbs();
+				if (!valid.length) return;
+
+				// iPhone: convertir a JPEG apenas se elige la foto (no esperar al submit).
+				Promise.all(valid.map(convertPhotoForUpload))
+					.then(function (prepared) {
+						for (var j = 0; j < prepared.length; j++) {
+							if (state.files.length >= MAX_FILES) break;
+							state.files.push(prepared[j]);
+						}
+						renderThumbs();
+					})
+					.catch(function () {
+						setError(1, iosPhotoNotReadyMsg());
+					});
 			}
 
 			function renderThumbs() {
@@ -702,21 +761,27 @@ import '../styles/kit-mundial.css';
 				submitBtn.disabled = true;
 				showLoading();
 
-				// En iPhone/Safari, convertimos HEIC a JPEG en el navegador si se puede (más confiable).
-				Promise.all(state.files.map(convertHeicViaCanvas))
+				// iPhone: verificar JPEG antes de subir (evita fallo rápido ~10s por HEIC en el server).
+				Promise.all(state.files.map(convertPhotoForUpload))
 					.then(function (preparedFiles) {
+						var iosBlock = ensureIosJpegFiles(preparedFiles);
+						if (iosBlock) {
+							showError(iosBlock);
+							throw new Error('ios-not-jpeg');
+						}
 						var fd = new FormData();
 						fd.append('cantidad_mascotas', isVarias() ? 'varias' : 'una');
 						fd.append('nombre_mascota', val('#km-nombre-mascota'));
 						fd.append('nombre_cliente', val('#km-nombre'));
-						preparedFiles.forEach(function (f) {
-							var name = f.name || 'foto.jpg';
-							if (!/\.(jpe?g|png|webp|gif|heic|heif)$/i.test(name)) name = name + '.jpg';
+						preparedFiles.forEach(function (f, idx) {
+							var name = f.name || ('foto-' + (idx + 1) + '.jpg');
+							if (!/\.jpe?g$/i.test(name)) name = name.replace(/\.[^.]+$/, '') + '.jpg';
 							fd.append('foto', f, name);
 						});
-						return fetch(API_BASE + '/api/kit-preview', { method: 'POST', body: fd });
+						return fetchWithTimeout(API_BASE + '/api/kit-preview', { method: 'POST', body: fd }, FETCH_TIMEOUT_MS);
 					})
 					.then(function (r) {
+						if (!r || !r.json) return { ok: false, status: 0, data: {} };
 						return r.json().catch(function () { return {}; }).then(function (data) {
 							return { ok: r.ok, status: r.status, data: data || {} };
 						});
@@ -726,13 +791,21 @@ import '../styles/kit-mundial.css';
 							showResult(res.data.image);
 						} else if (res.status === 503) {
 							showSuccess();
-						} else {
-							var msg = (res.data && res.data.error) ? res.data.error : null;
-							showError(msg);
+						} else if (res.status) {
+							showError(errorMessageForResponse(res.status, res.data));
 						}
 					})
-					.catch(function () {
-						showError(null);
+					.catch(function (err) {
+						if (err && err.message === 'ios-not-jpeg') return;
+						if (err && err.message === 'timeout') {
+							showError(iosPhotoNotReadyMsg());
+						} else if (err && err.name === 'AbortError') {
+							showError('La generación tardó más de 3 minutos. Probá con WiFi o mandanos la foto por WhatsApp.');
+						} else if (err && (err.message === 'img-error' || err.message === 'no-blob' || err.message === 'no-dimensions')) {
+							showError(iosPhotoNotReadyMsg());
+						} else if (err) {
+							showError('No pudimos conectar con el servidor. Si estás en 4G, probá con WiFi o mandanos la foto por WhatsApp.');
+						}
 					})
 					.finally(function () {
 						state.sending = false;

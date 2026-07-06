@@ -98,25 +98,24 @@ function logIncomingFile(file, index = 0) {
   );
 }
 
-function toArrayBuffer(buf) {
-  return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
-}
 
 /** Convierte HEIC/HEIF a JPEG con heic-convert; fallback a .all() si hace falta. */
 async function convertHeicToJpeg(buffer, label = 'foto') {
-  const input = toArrayBuffer(buffer);
+  const input = Buffer.isBuffer(buffer) ? buffer : Buffer.from(buffer);
   try {
     const out = await heicConvert({ buffer: input, format: 'JPEG', quality: 0.9 });
-    console.log(`[kit-preview] HEIC convertido OK ("${label}") → JPEG ${Buffer.from(out).length} bytes`);
-    return Buffer.from(out);
+    const jpeg = Buffer.isBuffer(out) ? out : Buffer.from(out);
+    console.log(`[kit-preview] HEIC convertido OK ("${label}") → JPEG ${jpeg.length} bytes`);
+    return jpeg;
   } catch (e1) {
     console.warn(`[kit-preview] heic-convert directo falló ("${label}"):`, e1?.message ?? e1);
     try {
       const images = await heicConvert.all({ buffer: input, format: 'JPEG' });
       if (images?.length) {
         const out = await images[0].convert();
-        console.log(`[kit-preview] HEIC convertido OK vía .all() ("${label}") → JPEG ${Buffer.from(out).length} bytes`);
-        return Buffer.from(out);
+        const jpeg = Buffer.isBuffer(out) ? out : Buffer.from(out);
+        console.log(`[kit-preview] HEIC convertido OK vía .all() ("${label}") → JPEG ${jpeg.length} bytes`);
+        return jpeg;
       }
     } catch (e2) {
       const err = new Error(`heic-convert: ${e1?.message ?? e1} | all: ${e2?.message ?? e2}`);

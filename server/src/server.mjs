@@ -67,26 +67,27 @@ app.use((req, res, next) => {
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
 // Subida de fotos en memoria para el preview del Kit Mundial (máx. 5 imágenes, 20MB c/u).
-// Aceptamos image/*, application/octet-stream (iPhone/Safari HEIC sin extensión clara),
-// y extensiones de foto comunes. La validación real la hace normalizeImage (magic bytes).
+// Aceptamos todo en multer; la validación real la hace normalizeImage (magic bytes).
+// iPhone/Safari manda HEIC con mime raro — filtrar acá suele descartar la foto en silencio.
 const uploadPreview = multer({
   storage: multer.memoryStorage(),
   limits: { files: 5, fileSize: 20 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
-    const mime = (file.mimetype || '').toLowerCase();
-    const name = (file.originalname || '').toLowerCase();
-    const okMime =
-      /^image\//i.test(mime) ||
-      mime.includes('heic') ||
-      mime.includes('heif') ||
-      mime === 'application/octet-stream' ||
-      mime === 'binary/octet-stream' ||
-      mime === '';
-    const okExt = /\.(heic|heif|jpe?g|png|webp|gif)$/i.test(name);
-    const okIphoneName = /^(img_|photo|image|pict)/i.test(name) && (mime === '' || mime.includes('octet-stream'));
-    cb(null, okMime || okExt || okIphoneName);
+    console.log(
+      `[kit-preview] multer recibiendo campo: name="${file.originalname || ''}" mime="${file.mimetype || '(vacío)'}"`
+    );
+    cb(null, true);
   },
 });
+
+/** Log de entrada ANTES de multer — si no aparece en journalctl, el request no llegó al Node (nginx/413/timeout). */
+function logKitPreviewIncoming(req) {
+  const ip = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '').toString();
+  const ua = String(req.headers['user-agent'] ?? '').slice(0, 160);
+  const cl = req.headers['content-length'] ?? '?';
+  const ct = String(req.headers['content-type'] ?? '').slice(0, 80);
+  console.log(`[kit-preview] >>> POST entrante ip=${ip} content-length=${cl} ct="${ct}" ua="${ua}"`);
+}
 
 /**
  * Genera el preview "Kit Mundial" con IA a partir de la/s foto/s de la mascota.
@@ -94,17 +95,23 @@ const uploadPreview = multer({
  * Devuelve { image: "data:image/png;base64,..." }. Guarda una copia nuestra en disco.
  */
 app.post('/api/kit-preview', (req, res, next) => {
+  logKitPreviewIncoming(req);
   uploadPreview.array('foto', 5)(req, res, (err) => {
     if (err) {
-      console.error('[kit-preview] multer error:', err.code, err.message);
+      console.error('[kit-preview] multer error:', err.code, err.message, 'content-length=', req.headers['content-length']);
       if (err.code === 'LIMIT_FILE_SIZE') {
         return res.status(400).json({
           error: 'La foto pesa demasiado (máx. 20 MB). Probá con otra más liviana.',
           code: 'FILE_TOO_LARGE',
         });
       }
+      if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+        return res.status(400).json({ error: 'Formato de subida inválido.', code: 'UPLOAD_ERROR' });
+      }
       return res.status(400).json({ error: 'No se pudo subir la foto.', code: 'UPLOAD_ERROR' });
     }
+    const n = (req.files ?? []).length;
+    console.log(`[kit-preview] multer OK → ${n} archivo(s) en memoria`);
     next();
   });
 }, async (req, res) => {
@@ -142,7 +149,11 @@ app.post('/api/kit-preview', (req, res, next) => {
       });
     }
     const status = code === 'NO_KEY' ? 503 : code === 'NO_IMAGE' ? 400 : 502;
-    res.status(status).json({ error: 'No se pudo generar el preview.', code });
+    const msg =
+      code === 'OPENAI_ERROR' && String(err?.message ?? '').includes('abort')
+        ? 'La generación tardó demasiado. Probá de nuevo con WiFi.'
+        : 'No se pudo generar el preview.';
+    res.status(status).json({ error: msg, code });
   }
 });
 
