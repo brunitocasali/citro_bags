@@ -66,11 +66,19 @@ app.use((req, res, next) => {
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
-// Subida de fotos en memoria para el preview del Kit Mundial (máx. 5 imágenes, 12MB c/u).
+// Subida de fotos en memoria para el preview del Kit Mundial (máx. 5 imágenes, 20MB c/u).
+// El límite es generoso porque comprimimos/redimensionamos server-side antes de OpenAI
+// (fotos grandes de iPhone/Android entran igual). Aceptamos image/* y también HEIC/HEIF
+// de iPhone (Safari a veces manda mimetype raro, ej. application/octet-stream, así que
+// también dejamos pasar por extensión .heic/.heif).
 const uploadPreview = multer({
   storage: multer.memoryStorage(),
-  limits: { files: 5, fileSize: 12 * 1024 * 1024 },
-  fileFilter: (_req, file, cb) => cb(null, /^image\//.test(file.mimetype)),
+  limits: { files: 5, fileSize: 20 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const okMime = /^image\//i.test(file.mimetype || '');
+    const okExt = /\.(heic|heif)$/i.test(file.originalname || '');
+    cb(null, okMime || okExt);
+  },
 });
 
 /**
@@ -97,6 +105,11 @@ app.post('/api/kit-preview', uploadPreview.array('foto', 5), async (req, res) =>
   } catch (err) {
     console.error('[kit-preview] error:', err?.message ?? err);
     const code = err?.code ?? 'ERROR';
+    if (code === 'HEIC_CONVERT_ERROR') {
+      return res
+        .status(400)
+        .json({ error: 'No pudimos procesar esa foto. Probá con otra (o sacale una captura).', code });
+    }
     const status = code === 'NO_KEY' ? 503 : code === 'NO_IMAGE' ? 400 : 502;
     res.status(status).json({ error: 'No se pudo generar el preview.', code });
   }

@@ -261,6 +261,22 @@
   display: block;
 }
 
+/* thumbnail de foto sin preview (HEIC fuera de Safari): mostramos un cartelito */
+.km-thumb--nopreview {
+  display: grid;
+  place-items: center;
+  background: var(--km-celeste-soft, #eef5fb);
+  color: var(--km-muted, #6b7280);
+}
+
+.km-thumb--nopreview::after {
+  content: 'Foto lista ✓';
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-align: center;
+  padding: 0 0.4rem;
+}
+
 /* ejemplo real del kit (sección kits) */
 .km-example {
   margin: 0 auto 2rem;

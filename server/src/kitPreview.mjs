@@ -1,7 +1,93 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import crypto from 'node:crypto';
+import heicConvert from 'heic-convert';
+import { Jimp } from 'jimp';
 import { config } from './config.mjs';
+
+// Lado más largo máximo (px) que mandamos a OpenAI. Suficiente como referencia y evita payloads gigantes.
+const MAX_DIM = 2048;
+const JPEG_QUALITY = 85;
+
+/**
+ * ¿El archivo es HEIC/HEIF? (fotos de iPhone). No confiamos solo en el mimetype
+ * porque iPhone/Safari a veces lo mandan como application/octet-stream o vacío.
+ * Chequeamos mimetype, extensión y "magic bytes" del contenedor ISO-BMFF (ftyp...).
+ */
+export function isHeic(file) {
+  const mime = (file.mimetype || '').toLowerCase();
+  if (mime === 'image/heic' || mime === 'image/heif' || mime === 'image/heic-sequence' || mime === 'image/heif-sequence') {
+    return true;
+  }
+  const name = (file.originalname || '').toLowerCase();
+  if (/\.(heic|heif)$/.test(name)) return true;
+
+  // Magic bytes: en un archivo HEIC/HEIF, los bytes 4..8 son "ftyp" y el "major brand"
+  // que sigue suele ser heic/heix/heif/mif1/msf1/hevc/hevx.
+  const buf = file.buffer;
+  if (buf && buf.length >= 12) {
+    const ftyp = buf.toString('ascii', 4, 8);
+    if (ftyp === 'ftyp') {
+      const brand = buf.toString('ascii', 8, 12).toLowerCase();
+      if (['heic', 'heix', 'heif', 'mif1', 'msf1', 'hevc', 'hevx', 'heim', 'heis', 'hevm', 'hevs'].includes(brand)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/**
+ * Normaliza una foto del cliente para mandarla a OpenAI, sirva de cualquier teléfono:
+ *   1. Si es HEIC/HEIF (iPhone) → la convierte a JPEG en memoria.
+ *   2. Si el lado más largo supera MAX_DIM (2048px) → la reduce manteniendo proporción.
+ *   3. La re-encodea a JPEG (~0.85) para bajar el peso.
+ * Todo pure-JS (heic-convert + jimp), sin binarios nativos.
+ * Devuelve { buffer, mimetype, filename } coherentes con el buffer final.
+ */
+export async function normalizeImage(file) {
+  const rawName = file.originalname || 'foto';
+  const base = rawName.replace(/\.[^.]+$/, '') || 'foto';
+
+  let working = file.buffer;
+  let mimetype = file.mimetype || 'image/png';
+  let filename = rawName.indexOf('.') >= 0 ? rawName : `${rawName}.png`;
+
+  // 1) HEIC/HEIF → JPEG
+  if (isHeic(file)) {
+    try {
+      const jpegBuffer = await heicConvert({ buffer: file.buffer, format: 'JPEG', quality: 0.9 });
+      working = Buffer.from(jpegBuffer);
+      mimetype = 'image/jpeg';
+      filename = `${base}.jpg`;
+      console.log(`[kit-preview] HEIC/HEIF detectado ("${rawName}") → convertido a JPEG`);
+    } catch (e) {
+      const err = new Error(`No se pudo convertir la foto HEIC: ${e?.message ?? e}`);
+      err.code = 'HEIC_CONVERT_ERROR';
+      throw err;
+    }
+  }
+
+  // 2 + 3) resize (si hace falta) + re-encode a JPEG para bajar peso
+  try {
+    const img = await Jimp.read(working);
+    const longest = Math.max(img.width, img.height);
+    if (longest > MAX_DIM) {
+      const scale = MAX_DIM / longest;
+      img.resize({ w: Math.round(img.width * scale), h: Math.round(img.height * scale) });
+      console.log(`[kit-preview] foto redimensionada de ${longest}px a ${MAX_DIM}px (lado largo)`);
+    }
+    working = await img.getBuffer('image/jpeg', { quality: JPEG_QUALITY });
+    mimetype = 'image/jpeg';
+    filename = `${base}.jpg`;
+  } catch (e) {
+    // Si jimp no pudo leer/re-encodear (formato raro), mandamos lo que ya tengamos
+    // (el HEIC ya quedó convertido a JPEG arriba; un JPEG/PNG normal se manda tal cual).
+    console.warn(`[kit-preview] no se pudo redimensionar/re-encodear ("${rawName}"), se envía original:`, e?.message ?? e);
+  }
+
+  return { buffer: working, mimetype, filename };
+}
 
 /**
  * Prompt maestro "Kit Mundial" (ver docs/citro-arte-pod/Prompt_KitMundial.md).
@@ -84,18 +170,24 @@ export async function generateKitPreview({ files, petName, count, clientName, ip
 
   const prompt = buildPrompt({ petName, count });
 
+  // Normalizamos cada foto: HEIC→JPEG + resize ≤2048px + re-encode JPEG (sirve de cualquier teléfono).
+  const prepared = [];
+  for (const f of files.slice(0, 5)) {
+    prepared.push(await normalizeImage(f));
+  }
+
   const fd = new FormData();
   fd.append('model', config.openaiImageModel);
   fd.append('prompt', prompt);
   fd.append('size', config.openaiImageSize);
   if (config.openaiImageQuality) fd.append('quality', config.openaiImageQuality);
   fd.append('n', '1');
-  for (const f of files.slice(0, 5)) {
-    fd.append('image[]', new Blob([f.buffer], { type: f.mimetype || 'image/png' }), f.originalname || 'foto.png');
+  for (const p of prepared) {
+    fd.append('image[]', new Blob([p.buffer], { type: p.mimetype }), p.filename);
   }
 
   console.log(
-    `[kit-preview] pidiendo a OpenAI → model=${config.openaiImageModel} quality=${config.openaiImageQuality} size=${config.openaiImageSize} imgs=${files.length}`
+    `[kit-preview] pidiendo a OpenAI → model=${config.openaiImageModel} quality=${config.openaiImageQuality} size=${config.openaiImageSize} imgs=${prepared.length}`
   );
 
   const controller = new AbortController();

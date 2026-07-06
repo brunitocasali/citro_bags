@@ -156,7 +156,7 @@ import '../styles/kit-mundial.css';
 									</div>
 									<p class="km-drop__title" id="km-drop-title">Tocá para subir la foto de tu mascota</p>
 									<p class="km-drop__hint">JPG o PNG · de frente, con buena luz y sin flash</p>
-									<input id="km-files" type="file" accept="image/*" multiple hidden />
+									<input id="km-files" type="file" accept="image/*,.heic,.heif" multiple hidden />
 								</div>
 								<div class="km-thumbs" id="km-thumbs"></div>
 
@@ -366,7 +366,7 @@ import '../styles/kit-mundial.css';
 					? 'http://localhost:4000'
 					: '';
 			var MAX_FILES = 5;
-			var MAX_SIZE_MB = 12;
+			var MAX_SIZE_MB = 20;
 			// ============================================
 
 			var form = document.getElementById('km-form');
@@ -464,7 +464,11 @@ import '../styles/kit-mundial.css';
 				var incoming = Array.prototype.slice.call(list || []);
 				for (var i = 0; i < incoming.length; i++) {
 					var f = incoming[i];
-					if (!/^image\//.test(f.type)) { setError(1, 'Ese archivo no es una imagen. Subí una foto (JPG o PNG).'); continue; }
+					// Permitimos imágenes y también HEIC/HEIF de iPhone (Safari a veces reporta
+					// el type vacío o "application/octet-stream"; el backend las convierte a JPEG).
+					var isImageType = /^image\//.test(f.type);
+					var isHeicName = /\.(heic|heif)$/i.test(f.name || '');
+					if (!isImageType && !isHeicName) { setError(1, 'Ese archivo no es una imagen. Subí una foto (JPG, PNG o HEIC).'); continue; }
 					if (f.size > MAX_SIZE_MB * 1024 * 1024) { setError(1, 'La foto pesa más de ' + MAX_SIZE_MB + ' MB (' + humanSize(f.size) + '). Probá con una más liviana.'); continue; }
 					if (state.files.length >= MAX_FILES) { setError(1, 'Máximo ' + MAX_FILES + ' fotos.'); break; }
 					state.files.push(f);
@@ -478,14 +482,26 @@ import '../styles/kit-mundial.css';
 					var url = URL.createObjectURL(f);
 					var wrap = document.createElement('div');
 					wrap.className = 'km-thumb';
-					wrap.innerHTML =
-						'<img src="' + url + '" alt="Foto ' + (idx + 1) + '" />' +
-						'<button type="button" class="km-thumb__del" aria-label="Quitar foto ' + (idx + 1) + '">×</button>';
-					wrap.querySelector('.km-thumb__del').addEventListener('click', function () {
+					var img = document.createElement('img');
+					img.src = url;
+					img.alt = 'Foto ' + (idx + 1);
+					// Los HEIC no se previsualizan fuera de Safari: mostramos un cartelito en vez del ícono roto.
+					img.addEventListener('error', function () {
+						wrap.classList.add('km-thumb--nopreview');
+						img.remove();
+					});
+					var del = document.createElement('button');
+					del.type = 'button';
+					del.className = 'km-thumb__del';
+					del.setAttribute('aria-label', 'Quitar foto ' + (idx + 1));
+					del.textContent = '×';
+					del.addEventListener('click', function () {
 						URL.revokeObjectURL(url);
 						state.files.splice(idx, 1);
 						renderThumbs();
 					});
+					wrap.appendChild(img);
+					wrap.appendChild(del);
 					thumbs.appendChild(wrap);
 				});
 			}
