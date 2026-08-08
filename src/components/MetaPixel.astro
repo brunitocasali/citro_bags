@@ -1,0 +1,110 @@
+---
+/**
+ * Meta Pixel (base) + persistencia de atribución para el funnel del ebook.
+ *
+ * - Inicializa el pixel y dispara PageView.
+ * - Guarda fbclid + UTM + URL de aterrizaje (localStorage) para conservarlos hasta el checkout.
+ * - Expone `window.vcMeta` con:
+ *      tracking()          → { fbp, fbc, fbclid, utm, landing_url, event_source_url, user_agent }
+ *      track(name,data,id) → wrapper de fbq con soporte de eventID (deduplicación).
+ * - `event` (opcional) dispara un evento adicional al cargar (ej. ViewContent).
+ *
+ * El Purchase NO se dispara acá: se dispara en /gracias solo si el pago está aprobado,
+ * con el mismo event_id que el backend usa en Conversions API (deduplicación).
+ */
+import { META_PIXEL_ID } from '../data/metaPixel';
+
+export interface Props {
+  event?: string;
+  eventData?: Record<string, unknown>;
+}
+
+const { event, eventData } = Astro.props;
+---
+
+<script define:vars={{ pixelId: META_PIXEL_ID, fireEvent: event ?? '', eventData: eventData ?? {} }}>
+  /* Meta Pixel base code */
+  !(function (f, b, e, v, n, t, s) {
+    if (f.fbq) return;
+    n = f.fbq = function () {
+      n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+    };
+    if (!f._fbq) f._fbq = n;
+    n.push = n;
+    n.loaded = !0;
+    n.version = '2.0';
+    n.queue = [];
+    t = b.createElement(e);
+    t.async = !0;
+    t.src = v;
+    s = b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t, s);
+  })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+
+  fbq('init', pixelId);
+  fbq('track', 'PageView');
+
+  (function () {
+    try {
+      var qs = new URLSearchParams(location.search);
+      var fbclid = qs.get('fbclid');
+      if (fbclid) localStorage.setItem('vc_fbclid', fbclid);
+      var utm = {};
+      ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'].forEach(function (k) {
+        var val = qs.get(k);
+        if (val) utm[k] = val;
+      });
+      if (Object.keys(utm).length) localStorage.setItem('vc_utm', JSON.stringify(utm));
+      if (!localStorage.getItem('vc_land')) localStorage.setItem('vc_land', location.href);
+    } catch (e) {}
+
+    function getCookie(name) {
+      var m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+      return m ? m.pop() : '';
+    }
+
+    window.vcMeta = {
+      tracking: function () {
+        var utm = {};
+        try {
+          utm = JSON.parse(localStorage.getItem('vc_utm') || '{}');
+        } catch (e) {}
+        var fbclid = '';
+        var land = '';
+        try {
+          fbclid = localStorage.getItem('vc_fbclid') || '';
+          land = localStorage.getItem('vc_land') || '';
+        } catch (e) {}
+        return {
+          fbp: getCookie('_fbp'),
+          fbc: getCookie('_fbc'),
+          fbclid: fbclid,
+          utm: utm,
+          landing_url: land,
+          event_source_url: location.href,
+          user_agent: navigator.userAgent,
+        };
+      },
+      track: function (name, data, eventID) {
+        if (typeof fbq !== 'function') return;
+        if (eventID) fbq('track', name, data || {}, { eventID: eventID });
+        else fbq('track', name, data || {});
+      },
+    };
+
+    if (fireEvent) {
+      try {
+        fbq('track', fireEvent, eventData || {});
+      } catch (e) {}
+    }
+  })();
+</script>
+<noscript>
+  <img
+    height="1"
+    width="1"
+    style="display:none"
+    src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
+    alt=""
+  />
+</noscript>

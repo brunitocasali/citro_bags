@@ -52,6 +52,18 @@ export const config = {
   adminPass: required('ADMIN_PASS'),
 
   currency: process.env.CURRENCY ?? 'ARS',
+
+  // --- Meta (Facebook) Pixel + Conversions API ---
+  // El Pixel ID es público. El Access Token es SECRETO (no committear).
+  // Si META_CAPI_TOKEN queda vacío, el envío server-side (Conversions API) se omite
+  // sin romper nada (el pixel del navegador sigue funcionando).
+  metaPixelId: process.env.META_PIXEL_ID ?? '1670887204183026',
+  metaCapiToken: process.env.META_CAPI_TOKEN ?? '',
+  metaApiVersion: process.env.META_API_VERSION ?? 'v21.0',
+  // Código de prueba de Meta Events Manager → "Probar eventos". Si está seteado, los
+  // eventos llegan SOLO a la pestaña de test (no cuentan como conversiones reales).
+  metaTestEventCode: process.env.META_TEST_EVENT_CODE ?? '',
+
   catalogPath: join(repoRoot, 'src', 'data', 'ebookProducts.json'),
   // Catálogo de productos físicos (bolsos, kits, productos sueltos). Mismo JSON que usa la web.
   shopCatalogPath: join(repoRoot, 'src', 'data', 'shopProducts.json'),

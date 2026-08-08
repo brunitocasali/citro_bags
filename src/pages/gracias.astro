@@ -1,5 +1,6 @@
 ---
 // Página de retorno post-pago. Lee ?order=... y consulta el estado hasta confirmarlo.
+import MetaPixel from '../components/MetaPixel.astro';
 ---
 
 <!doctype html>
@@ -8,6 +9,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>¡Gracias por tu compra! · Victoria Citro</title>
+    <MetaPixel />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -57,6 +59,7 @@
       } else {
         let tries = 0;
         const maxTries = 40; // ~2 min
+        let purchaseFired = false;
 
         async function check() {
           tries++;
@@ -65,6 +68,22 @@
             const data = await res.json();
 
             if (data.status === 'approved') {
+              // Meta Purchase (navegador) — SOLO con pago aprobado. Mismo event_id que
+              // Conversions API (backend) para que Meta deduplique.
+              if (!purchaseFired && data.event_id && window.vcMeta) {
+                purchaseFired = true;
+                window.vcMeta.track(
+                  'Purchase',
+                  {
+                    value: data.value,
+                    currency: data.currency || 'ARS',
+                    content_ids: data.content_ids || [],
+                    content_type: 'product',
+                  },
+                  data.event_id
+                );
+              }
+
               title.textContent = '¡Gracias por tu compra! 💛';
               downloads.innerHTML = '';
               const hasDownloads = (data.downloads || []).length > 0;

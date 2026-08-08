@@ -5,504 +5,232 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Una guía cálida y amorosa para atravesar el duelo de tu compañero de vida. Victoria Citro — arte y duelo."
+      content="Cuando a los ángeles les devuelven las alas — una guía cálida y amorosa para atravesar el duelo de tu compañero de vida. Victoria Citro, arte y duelo."
     />
     <title>Cuando a los ángeles les devuelven las alas | Victoria Citro</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400..700;1,400..700&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="css/ebooks-landing.css" />
     <link rel="icon" href="/ebook/favicon-vc.png" type="image/png" />
     <link rel="apple-touch-icon" href="/ebook/favicon-vc.png" />
+    <style>
+      :root {
+        --eb-cream: #f2eadf;
+        --eb-gold: #b3924e;
+        --eb-gold-dark: #9c7d3e;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: var(--eb-cream);
+        -webkit-font-smoothing: antialiased;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      }
+      /* Columna tipo funnel móvil: ancho completo en celular, centrada en desktop. */
+      .eb {
+        max-width: 500px;
+        margin: 0 auto;
+        background: var(--eb-cream);
+      }
+      /* Cada sección es una imagen a ancho completo, sin márgenes ni gaps. */
+      .eb-sec {
+        position: relative;
+        margin: 0;
+        padding: 0;
+        font-size: 0;
+        line-height: 0;
+      }
+      .eb-sec picture,
+      .eb-sec img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      /* Hotspot de compra transparente, exactamente sobre el botón dibujado en la imagen. */
+      .eb-hot {
+        position: absolute;
+        display: block;
+        z-index: 2;
+        -webkit-tap-highlight-color: rgba(179, 146, 78, 0.25);
+        cursor: pointer;
+      }
+      .eb-hot:focus-visible {
+        outline: 3px solid var(--eb-gold-dark);
+        outline-offset: 2px;
+        border-radius: 12px;
+      }
+      /* Links reales de la autora (Instagram + web), superpuestos en la sección "Conocé a la autora". */
+      .eb-author-links {
+        position: absolute;
+        z-index: 3;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        line-height: normal;
+      }
+      .eb-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        text-decoration: none;
+        color: #fff;
+        background: var(--eb-gold);
+        border-radius: 999px;
+        box-shadow: 0 4px 12px rgba(74, 55, 40, 0.18);
+      }
+      .eb-link--ghost {
+        color: var(--eb-gold-dark);
+        background: rgba(255, 255, 255, 0.92);
+        border: 1px solid rgba(156, 125, 62, 0.5);
+      }
+      .eb-link:active {
+        transform: translateY(1px);
+      }
+    </style>
   </head>
   <body>
-    <div class="vc-page">
-      <header class="vc-header">
-        <div class="vc-header__inner">
-          <a class="vc-brand" href="/">
-            <span class="vc-brand__name">Victoria Citro</span>
-            <span class="vc-brand__tag">Arte &amp; duelo</span>
-          </a>
+    <main class="eb">
+      <!-- 1 · HERO (archivo 4): portada + precio + botón "Quiero acceder a la guía" -->
+      <figure class="eb-sec">
+        <picture>
+          <source srcset="/ebook/landing/sec-1.webp" type="image/webp" />
+          <img
+            src="/ebook/landing/sec-1.jpg"
+            width="1064"
+            height="1478"
+            alt="Cuando a los ángeles les devuelven las alas, Edición Perros, de Victoria Citro. Guía digital. $16.990 ARS. Acceso inmediato, lectura en cualquier dispositivo, garantía de 7 días."
+            fetchpriority="high"
+            decoding="async"
+          />
+        </picture>
+        <a
+          class="eb-hot"
+          href="{{checkoutUrl}}"
+          style="left: 51%; top: 60%; width: 47%; height: 8.5%"
+          aria-label="Quiero acceder a la guía — ir al checkout"
+        ></a>
+      </figure>
+
+      <!-- 2 · (archivo 3): "Cuando se van, el amor se queda" — collar y plato -->
+      <figure class="eb-sec">
+        <picture>
+          <source srcset="/ebook/landing/sec-2.webp" type="image/webp" />
+          <img
+            src="/ebook/landing/sec-2.jpg"
+            width="1024"
+            height="1536"
+            alt="Cuando se van, el amor se queda. El collar sigue ahí. El plato sigue vacío."
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+      </figure>
+
+      <!-- 3 · (archivo 2): "La camita sigue en el mismo lugar" — abrazo -->
+      <figure class="eb-sec">
+        <picture>
+          <source srcset="/ebook/landing/sec-3.webp" type="image/webp" />
+          <img
+            src="/ebook/landing/sec-3.jpg"
+            width="914"
+            height="1600"
+            alt="La camita sigue en el mismo lugar. Hay momentos que dan ganas de abrazar el recuerdo."
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+      </figure>
+
+      <!-- 4 · (archivo 1): "Si reconocés este vacío" + "Esta guía puede ayudarte a..." -->
+      <figure class="eb-sec">
+        <picture>
+          <source srcset="/ebook/landing/sec-4.webp" type="image/webp" />
+          <img
+            src="/ebook/landing/sec-4.jpg"
+            width="759"
+            height="1600"
+            alt="Si reconocés este vacío, esta guía fue creada para vos. Esta guía puede ayudarte a comprender tu duelo, trabajar la culpa, encontrar ejercicios prácticos, realizar un ritual de despedida, conservar su memoria y volver a sentir calma y gratitud."
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+      </figure>
+
+      <!-- 5 · (archivo 5): testimonios reales (WhatsApp) -->
+      <figure class="eb-sec">
+        <picture>
+          <source srcset="/ebook/landing/sec-5.webp" type="image/webp" />
+          <img
+            src="/ebook/landing/sec-5.jpg"
+            width="1024"
+            height="1536"
+            alt="Ellos ya lo leyeron y estas son sus palabras: mensajes reales de lectoras agradeciendo la guía."
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+      </figure>
+
+      <!-- 6 · (archivo 7): "¿Qué incluye la guía?" + reseñas + "Conocé a Victoria Citro" -->
+      <figure class="eb-sec">
+        <picture>
+          <source srcset="/ebook/landing/sec-6.webp" type="image/webp" />
+          <img
+            src="/ebook/landing/sec-6.jpg"
+            width="840"
+            height="1600"
+            alt="¿Qué incluye la guía? Guía digital de más de 90 páginas, 7 capítulos con ejercicios y ritual de despedida, carta de despedida imprimible, recursos para acompañar a niños y adultos, acceso inmediato y para siempre. Reseñas de Mariana, Laura y Sofía. Conocé a Victoria Citro."
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+        <!-- Sección "Conocé a la autora": enlaces funcionales que abren en pestaña nueva. -->
+        <div class="eb-author-links" style="left: 5%; top: 91.5%">
           <a
-            class="vc-btn vc-btn--ghost"
-            href="{{checkoutUrl}}"
+            class="eb-link"
+            href="https://www.instagram.com/victoria.citro/"
             target="_blank"
             rel="noopener noreferrer"
-            >Descargar la guía</a>
+            aria-label="Seguí a Victoria Citro en Instagram (abre en una pestaña nueva)"
+          >
+            Instagram
+          </a>
+          <a
+            class="eb-link eb-link--ghost"
+            href="https://victoriacitro.net/"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Visitá el sitio web de Victoria Citro (abre en una pestaña nueva)"
+          >
+            Sitio web
+          </a>
         </div>
-      </header>
+      </figure>
 
-      <!-- Hero: portada + promesa principal -->
-      <section class="vc-hero-main" aria-labelledby="vc-hero-title">
-        <div class="vc-shell">
-          <div class="vc-hero-main__grid">
-            <div>
-              <p class="vc-kicker">Una guía de sanación emocional</p>
-              <h1 id="vc-hero-title">Cuando a los ángeles les devuelven las alas</h1>
-              <p class="vc-hero-main__subtitle">
-                Una guía cálida y amorosa para atravesar el duelo de tu compañero de vida.
-              </p>
-              <p class="vc-hero-main__lead">
-                Porque perder una mascota nunca es «solo perder un animal». Es despedir una parte de tu historia, de tu
-                rutina y de tu corazón.
-              </p>
-              <a
-                class="vc-btn vc-btn--solid"
-                href="{{checkoutUrl}}"
-                target="_blank"
-                rel="noopener noreferrer"
-                >Descargar la guía ahora →</a>
-              <p class="vc-hero-main__meta">Lectura inmediata · Formato digital · Acceso para siempre</p>
-            </div>
-            <figure class="vc-hero-main__visual">
-              <img
-                src="/ebook/portada-guia-perros.png"
-                alt="Portada del libro Cuando a los ángeles les devuelven las alas, Edición Perros, de Victoria Citro"
-                width="440"
-                height="520"
-                loading="eager"
-                decoding="async"
-              />
-            </figure>
-          </div>
-        </div>
-      </section>
-
-      <!-- Mini-historia visual: secuencia emocional -->
-      <section class="vc-seq" aria-labelledby="vc-seq-title">
-        <div class="vc-shell">
-          <div class="vc-section-head">
-            <p class="vc-section-head__label">Una historia que quizás conocés</p>
-            <h2 id="vc-seq-title">Cuando se van, el amor se queda.</h2>
-          </div>
-        </div>
-        <div class="vc-seq__track">
-          <figure class="vc-seq__item">
-            <img
-              src="/ebook/secuencia/01-collar.png"
-              alt="El collar de la mascota colgado junto a la ventana. «Hay cosas que siguen ahí… aunque quien las usaba ya no esté.»"
-              loading="lazy"
-              decoding="async"
-            />
-          </figure>
-
-          <figure class="vc-seq__item">
-            <img
-              src="/ebook/secuencia/02-plato.png"
-              alt="El plato de comida vacío en el piso. «El plato sigue vacío. Cada comida es un recuerdo más.»"
-              loading="lazy"
-              decoding="async"
-            />
-          </figure>
-
-          <figure class="vc-seq__item">
-            <img
-              src="/ebook/secuencia/03-cama.png"
-              alt="La camita de la mascota vacía junto a la ventana. «El silencio también es extrañarlo.»"
-              loading="lazy"
-              decoding="async"
-            />
-          </figure>
-
-          <figure class="vc-seq__item">
-            <img
-              src="/ebook/secuencia/04-ventana.png"
-              alt="El cojín donde esperaba, sobre el alféizar de la ventana. «Su camita sigue en el mismo lugar. Porque el amor no entiende de ausencias.»"
-              loading="lazy"
-              decoding="async"
-            />
-          </figure>
-
-          <figure class="vc-seq__item">
-            <img
-              src="/ebook/secuencia/05-abrazo.png"
-              alt="Una persona abraza un cojín mirando por la ventana. «Hay momentos que dan ganas de abrazar el recuerdo. Y dejar que el corazón hable.»"
-              loading="lazy"
-              decoding="async"
-            />
-          </figure>
-        </div>
-        <div class="vc-shell">
-          <div class="vc-seq__cta">
-            <a
-              class="vc-btn vc-btn--solid"
-              href="{{checkoutUrl}}"
-              target="_blank"
-              rel="noopener noreferrer"
-              >Quiero sanar — Acceder a la guía 💛</a>
-            <p class="vc-seq__cta-meta">{{price}} · {{priceNote}}</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- Te entiendo: grid empatía -->
-      <section class="vc-empathy" aria-labelledby="vc-empathy-title">
-        <div class="vc-shell">
-          <div class="vc-section-head">
-            <p class="vc-section-head__label">Te entiendo</p>
-            <h2 id="vc-empathy-title">Si estás pasando por esto, no estás solo.</h2>
-          </div>
-          <div class="vc-card-grid">
-            <article class="vc-card">
-              <div class="vc-card__icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="M4 10.5V20h6v-7h4v7h6V10.5L12 4 4 10.5z" stroke-linejoin="round" />
-                </svg>
-              </div>
-              <p>Sentís un vacío enorme en tu casa.</p>
-            </article>
-            <article class="vc-card">
-              <div class="vc-card__icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="M12 21s-4-3.2-6-6.5C3.8 12.5 4 9 6.5 7 9 5 12 7 12 7s3-2 5.5 0C20 9 20.2 12.5 18 14.5 16 17.8 12 21 12 21z" />
-                  <path d="M8 10l8 8M16 10l-8 8" />
-                </svg>
-              </div>
-              <p>No sabés cómo atravesar el duelo.</p>
-            </article>
-            <article class="vc-card">
-              <div class="vc-card__icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="M6 18h12M7 14a5 5 0 0110 0v2H7v-2z" />
-                  <path d="M9 10V8a3 3 0 016 0v2" />
-                </svg>
-              </div>
-              <p>Sentís culpa o tristeza constante.</p>
-            </article>
-            <article class="vc-card">
-              <div class="vc-card__icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="M8 3v6l4 3 4-3V3" stroke-linejoin="round" />
-                  <path d="M8 21v-6l4-3 4 3v6" stroke-linejoin="round" />
-                  <path d="M12 12v0" stroke-width="2" stroke-linecap="round" />
-                </svg>
-              </div>
-              <p>Te cuesta aceptar la ausencia.</p>
-            </article>
-            <article class="vc-card">
-              <div class="vc-card__icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <rect x="4" y="6" width="16" height="14" rx="2" />
-                  <circle cx="12" cy="11" r="2.5" />
-                  <path d="M8 17h8" />
-                </svg>
-              </div>
-              <p>Temés olvidar pequeños recuerdos.</p>
-            </article>
-            <article class="vc-card">
-              <div class="vc-card__icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <ellipse cx="8" cy="18" rx="2.5" ry="3" />
-                  <ellipse cx="16" cy="17" rx="2.5" ry="3.5" />
-                  <path d="M10 18c2-4 4-8 2-10M14 17c-1-3 0-6 2-7" />
-                </svg>
-              </div>
-              <p>Sentís que una parte tuya se fue con ellos.</p>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <!-- Sanar con amor -->
-      <section class="vc-sanar" aria-labelledby="vc-sanar-title">
-        <div class="vc-shell">
-          <div class="vc-sanar__grid">
-            <div>
-              <p class="vc-kicker">Sanar con amor</p>
-              <h2 id="vc-sanar-title">Esta guía fue creada para ayudarte a sanar con amor.</h2>
-              <ul class="vc-checklist">
-                <li>
-                  <span class="vc-check" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none">
-                      <path
-                        d="M6 12l4 4 8-8"
-                        stroke="#fff"
-                        stroke-width="2.4"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      />
-                    </svg>
-                  </span>
-                  Comprender mejor tu duelo
-                </li>
-                <li>
-                  <span class="vc-check" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none">
-                      <path
-                        d="M6 12l4 4 8-8"
-                        stroke="#fff"
-                        stroke-width="2.4"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      />
-                    </svg>
-                  </span>
-                  Sentirte acompañado emocionalmente
-                </li>
-                <li>
-                  <span class="vc-check" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none">
-                      <path
-                        d="M6 12l4 4 8-8"
-                        stroke="#fff"
-                        stroke-width="2.4"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      />
-                    </svg>
-                  </span>
-                  Encontrar herramientas para atravesar la pérdida
-                </li>
-                <li>
-                  <span class="vc-check" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none">
-                      <path
-                        d="M6 12l4 4 8-8"
-                        stroke="#fff"
-                        stroke-width="2.4"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      />
-                    </svg>
-                  </span>
-                  Aprender rituales y ejercicios de despedida
-                </li>
-                <li>
-                  <span class="vc-check" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none">
-                      <path
-                        d="M6 12l4 4 8-8"
-                        stroke="#fff"
-                        stroke-width="2.4"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      />
-                    </svg>
-                  </span>
-                  Transformar el dolor en memoria y amor
-                </li>
-                <li>
-                  <span class="vc-check" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none">
-                      <path
-                        d="M6 12l4 4 8-8"
-                        stroke="#fff"
-                        stroke-width="2.4"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      />
-                    </svg>
-                  </span>
-                  Honrar la vida de tu mascota de una manera profunda
-                </li>
-                <li>
-                  <span class="vc-check" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none">
-                      <path
-                        d="M6 12l4 4 8-8"
-                        stroke="#fff"
-                        stroke-width="2.4"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      />
-                    </svg>
-                  </span>
-                  Sentir más calma y conexión emocional
-                </li>
-              </ul>
-              <a
-                class="vc-btn vc-btn--solid"
-                href="{{checkoutUrl}}"
-                target="_blank"
-                rel="noopener noreferrer"
-                >Quiero empezar a sanar →</a>
-            </div>
-            <figure class="vc-sanar__visual">
-              <img
-                src="/ebook/kit-acompanamiento-duelo.png"
-                alt="Kit de acompañamiento en el duelo: guías, diario de recuerdos, vela y elementos para honrar a una mascota"
-                width="480"
-                height="600"
-                loading="lazy"
-                decoding="async"
-              />
-            </figure>
-          </div>
-        </div>
-      </section>
-
-      <!-- Lo que encontrarás dentro -->
-      <section class="vc-inside" aria-labelledby="vc-inside-title">
-        <div class="vc-shell">
-          <div class="vc-section-head">
-            <p class="vc-section-head__label">Lo que encontrarás dentro</p>
-            <h2 id="vc-inside-title">Un recorrido escrito con delicadeza, página por página.</h2>
-          </div>
-          <div class="vc-inside__grid">
-            <ol class="vc-chapter-list">
-                <li>
-                  <span class="vc-chapter-list__num">01</span>
-                  <span class="vc-chapter-list__text">Cómo entender el duelo por mascotas</span>
-                </li>
-                <li>
-                  <span class="vc-chapter-list__num">02</span>
-                  <span class="vc-chapter-list__text">Las emociones que nadie explica</span>
-                </li>
-                <li>
-                  <span class="vc-chapter-list__num">03</span>
-                  <span class="vc-chapter-list__text">La culpa y cómo liberarla</span>
-                </li>
-                <li>
-                  <span class="vc-chapter-list__num">04</span>
-                  <span class="vc-chapter-list__text">Cómo acompañar a niños en el proceso</span>
-                </li>
-                <li>
-                  <span class="vc-chapter-list__num">05</span>
-                  <span class="vc-chapter-list__text">Ritual de despedida</span>
-                </li>
-                <li>
-                  <span class="vc-chapter-list__num">06</span>
-                  <span class="vc-chapter-list__text">Cómo mantener viva su memoria</span>
-                </li>
-                <li>
-                  <span class="vc-chapter-list__num">07</span>
-                  <span class="vc-chapter-list__text">Ejercicios emocionales y reflexión</span>
-                </li>
-              </ol>
-              <figure class="vc-inside__visual">
-              <img
-                src="/ebook/carta-despedida-memoria.png"
-                alt="Carta de despedida y ritual de memoria sobre lino, con vela y recuerdo con huella"
-                width="520"
-                height="420"
-                loading="lazy"
-                decoding="async"
-              />
-            </figure>
-          </div>
-        </div>
-      </section>
-
-      <!-- Testimonios de productos -->
-      <section class="vc-testi" aria-labelledby="vc-testi-title">
-        <div class="vc-shell">
-          <div class="vc-section-head">
-            <p class="vc-section-head__label">Testimonios</p>
-            <h2 id="vc-testi-title">Esto es lo que dicen quienes ya confiaron en mi trabajo</h2>
-          </div>
-          <figure class="vc-testi__collage">
-            <img
-              src="/ebook/testimonios/resenas.png"
-              alt="Mensajes reales de lectoras: «No sabía si iba a poder leerlo sin llorar… pero me hizo tan bien», «Este libro fue un abrazo en el momento justo», «Me ayudó a entender muchas cosas que me costaban tanto», entre otros testimonios de agradecimiento."
-              loading="lazy"
-              decoding="async"
-            />
-          </figure>
-          <p class="vc-testi__close">
-            El mismo amor y dedicación que pongo en cada bolso pintado, lo puse en esta guía.
-          </p>
-          <div class="vc-testi__cta">
-            <a
-              class="vc-btn vc-btn--solid"
-              href="{{checkoutUrl}}"
-              target="_blank"
-              rel="noopener noreferrer"
-              >Quiero acceder a la guía →</a>
-          </div>
-        </div>
-      </section>
-
-      <!-- Conocé a la autora -->
-      <section class="vc-author" aria-labelledby="vc-author-title">
-        <div class="vc-shell">
-          <div class="vc-author__grid">
-            <figure class="vc-author__photo" data-label="Foto de Victoria">
-              <img
-                src="/ebook/victoria.jpg"
-                alt="Victoria Citro, artista y autora de la guía, junto a una mascota"
-                loading="lazy"
-                decoding="async"
-                onerror="this.style.display='none'"
-              />
-            </figure>
-            <div class="vc-author__body">
-              <p class="vc-kicker">La autora</p>
-              <h2 id="vc-author-title">Conocé a Victoria Citro</h2>
-              <p>
-                Soy Victoria, artista y amante de los animales. Pinto retratos de mascotas a mano en bolsos y
-                cuadros, y cada pieza que creo nace del mismo lugar: el amor que sentimos por nuestros compañeros
-                de vida.
-              </p>
-              <p>
-                Escribí esta guía porque viví el duelo de cerca, y porque creo que mereces un espacio que entienda
-                lo que estás sintiendo, sin apuro y sin minimizarlo.
-              </p>
-              <a
-                class="vc-btn vc-btn--ghost"
-                href="https://instagram.com/victoriacitro"
-                target="_blank"
-                rel="noopener noreferrer"
-                >📷 Seguime en Instagram →</a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Preguntas frecuentes -->
-      <section class="vc-faq" aria-labelledby="vc-faq-title">
-        <div class="vc-shell">
-          <div class="vc-section-head">
-            <p class="vc-section-head__label">FAQ</p>
-            <h2 id="vc-faq-title">Preguntas frecuentes</h2>
-          </div>
-          <div class="vc-faq__list">
-            <details class="vc-faq__item">
-              <summary>¿Cómo recibo la guía?</summary>
-              <p>Es 100% digital. Apenas confirmás el pago, accedés al instante desde tu celular o computadora.</p>
-            </details>
-            <details class="vc-faq__item">
-              <summary>¿Y si no me sirve?</summary>
-              <p>Tenés garantía de 7 días. Si sentís que no era para vos, te devolvemos el dinero sin vueltas.</p>
-            </details>
-            <details class="vc-faq__item">
-              <summary>¿Sirve si perdí a mi gato, no a mi perro?</summary>
-              <p>
-                Sí, aunque esta edición está ambientada en perros, el contenido emocional aplica a cualquier
-                compañero que hayas perdido.
-              </p>
-            </details>
-            <details class="vc-faq__item">
-              <summary>¿Necesito algún programa especial para leerlo?</summary>
-              <p>No, se lee desde cualquier celular, tablet o computadora, sin instalar nada.</p>
-            </details>
-          </div>
-        </div>
-      </section>
-
-      <!-- CTA final → tienda -->
-      <section class="vc-download" id="descarga" aria-label="Comprar la guía">
-        <div class="vc-shell">
-          <div class="vc-download__box">
-            <h2>Tu corazón y su memoria merecen este espacio para sanar.</h2>
-            <p class="vc-download__price">{{price}} · {{priceNote}} · {{guarantee}}</p>
-            <a
-              class="vc-btn vc-btn--solid vc-download__cta"
-              href="{{checkoutUrl}}"
-              target="_blank"
-              rel="noopener noreferrer"
-              >Recibí el acceso a la guía →</a>
-            <p class="vc-download__hint">Comprá con pago seguro y descargá al instante en la tienda oficial.</p>
-          </div>
-        </div>
-      </section>
-
-      <footer class="vc-footer">
-        <p>Victoria Citro · Arte &amp; duelo</p>
-        <p><a href="/">Volver al inicio</a> · <a href="/order">Pedir un bolso pintado a mano</a></p>
-      </footer>
-    </div>
+      <!-- 7 · (archivo 6): Preguntas frecuentes + CTA final (precio + medios de pago) -->
+      <figure class="eb-sec">
+        <picture>
+          <source srcset="/ebook/landing/sec-7.webp" type="image/webp" />
+          <img
+            src="/ebook/landing/sec-7.jpg"
+            width="900"
+            height="1600"
+            alt="Preguntas frecuentes. Tu corazón y su memoria merecen este espacio para sanar. $16.990 ARS, acceso inmediato, garantía de 7 días, pago seguro con Visa, Mastercard y Mercado Pago."
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+        <a
+          class="eb-hot"
+          href="{{checkoutUrl}}"
+          style="left: 2%; top: 77.5%; width: 96%; height: 22%"
+          aria-label="Comprar la guía — ir al checkout"
+        ></a>
+      </figure>
+    </main>
   </body>
 </html>

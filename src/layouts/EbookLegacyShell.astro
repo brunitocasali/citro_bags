@@ -3,7 +3,8 @@
  * Documento HTML completo para la landing legacy de /ebooks
  * (sin global.css de la home para no pisar estilos del diseño original).
  */
-import VcAutoscroll from '../components/VcAutoscroll.astro';
+import MetaPixel from '../components/MetaPixel.astro';
+import { getMainEbook } from '../data/ebookProducts';
 
 export interface Props {
 	title: string;
@@ -13,6 +14,15 @@ export interface Props {
 }
 
 const { title, description = '', headHtml, bodyHtml } = Astro.props;
+
+const main = getMainEbook();
+const viewContentData = {
+	content_ids: [main.slug],
+	content_name: main.title,
+	content_type: 'product',
+	currency: 'ARS',
+	value: main.priceArs ?? 0,
+};
 ---
 
 <!doctype html>
@@ -24,10 +34,10 @@ const { title, description = '', headHtml, bodyHtml } = Astro.props;
 		<link rel="icon" href="/ebook/favicon-vc.png" type="image/png" />
 		<link rel="apple-touch-icon" href="/ebook/favicon-vc.png" />
 		<title>{title}</title>
+		<MetaPixel event="ViewContent" eventData={viewContentData} />
 		<Fragment set:html={headHtml} />
 	</head>
 	<body>
 		<div id="ebook-legacy-root" set:html={bodyHtml} />
-		<VcAutoscroll />
 	</body>
 </html>

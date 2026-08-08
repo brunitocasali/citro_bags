@@ -1,5 +1,6 @@
 ---
 import { getMainEbook, getBonuses, getUpsells, formatArs } from '../data/ebookProducts';
+import MetaPixel from '../components/MetaPixel.astro';
 
 const main = getMainEbook();
 const bonuses = getBonuses();
@@ -13,6 +14,7 @@ const mainPrice = main.priceArs ?? 0;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Tu pedido · {main.title}</title>
+    <MetaPixel />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -115,12 +117,32 @@ const mainPrice = main.priceArs ?? 0;
       const mainSlug = mainEl.dataset.slug;
       const mainPriceVal = Number(mainEl.dataset.price);
 
-      function recalc() {
+      function currentItems() {
+        const items = [mainSlug];
+        document.querySelectorAll('.vc-upsell:checked').forEach((el) => items.push(el.dataset.slug));
+        return items;
+      }
+      function currentTotal() {
         let total = mainPriceVal;
         document.querySelectorAll('.vc-upsell:checked').forEach((el) => (total += Number(el.dataset.price)));
-        document.getElementById('vc-total').textContent = fmt(total);
+        return total;
+      }
+
+      function recalc() {
+        document.getElementById('vc-total').textContent = fmt(currentTotal());
       }
       document.querySelectorAll('.vc-upsell').forEach((el) => el.addEventListener('change', recalc));
+
+      // Meta: comienzo del checkout (al cargar la página del carrito).
+      if (window.vcMeta) {
+        window.vcMeta.track('InitiateCheckout', {
+          value: currentTotal(),
+          currency: 'ARS',
+          content_ids: currentItems(),
+          content_type: 'product',
+          num_items: currentItems().length,
+        });
+      }
 
       document.getElementById('vc-pay').addEventListener('click', async () => {
         const email = document.getElementById('vc-email').value.trim();
@@ -129,8 +151,19 @@ const mainPrice = main.priceArs ?? 0;
           msg.textContent = 'Ingresá un email válido, por favor.';
           return;
         }
-        const items = [mainSlug];
-        document.querySelectorAll('.vc-upsell:checked').forEach((el) => items.push(el.dataset.slug));
+        const items = currentItems();
+
+        // Meta: el usuario avanza a pagar (todavía NO es Purchase).
+        if (window.vcMeta) {
+          window.vcMeta.track('AddPaymentInfo', {
+            value: currentTotal(),
+            currency: 'ARS',
+            content_ids: items,
+            content_type: 'product',
+          });
+        }
+
+        const tracking = window.vcMeta ? window.vcMeta.tracking() : {};
 
         const btn = document.getElementById('vc-pay');
         btn.disabled = true;
@@ -139,7 +172,7 @@ const mainPrice = main.priceArs ?? 0;
           const res = await fetch(apiBase + '/api/checkout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ items, email }),
+            body: JSON.stringify({ items, email, tracking }),
           });
           const data = await res.json();
           if (!res.ok || !data.initPoint) throw new Error(data.error || 'Error al crear el pago.');

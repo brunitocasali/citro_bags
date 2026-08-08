@@ -14,8 +14,10 @@ import {
   markOrderApproved,
   setOrderStatus,
   markOrderEmailSent,
+  markOrderCapiPurchaseSent,
 } from './db.mjs';
 import { createPreference, getPayment } from './mp.mjs';
+import { sendPurchaseEvent } from './meta.mjs';
 import { makeDownloadToken, verifyDownloadToken } from './tokens.mjs';
 import { sendDownloadEmail, sendOrderConfirmationEmail } from './mail.mjs';
 import { basicAuth, salesReportHtml, salesReportCsv } from './admin.mjs';
@@ -46,6 +48,43 @@ async function deliverEmailOnce(orderId) {
   } catch (err) {
     console.error(`[mail] No se pudo enviar el email de la orden ${orderId}:`, err?.message ?? err);
   }
+}
+
+/** IP real del cliente (detrás de nginx viene en X-Forwarded-For; tomamos el primer salto). */
+function clientIpFrom(req) {
+  const xff = String(req.headers['x-forwarded-for'] ?? '').split(',')[0].trim();
+  return xff || req.socket?.remoteAddress || '';
+}
+
+/**
+ * Normaliza los datos de atribución (Meta) que manda el navegador en el checkout.
+ * Si no llega _fbc pero sí fbclid, lo reconstruye con el formato que espera Meta.
+ */
+function buildTracking(req, raw = {}) {
+  const t = raw && typeof raw === 'object' ? raw : {};
+  let fbc = typeof t.fbc === 'string' ? t.fbc : '';
+  const fbclid = typeof t.fbclid === 'string' ? t.fbclid : '';
+  if (!fbc && fbclid) fbc = `fb.1.${Date.now()}.${fbclid}`;
+  return {
+    fbp: typeof t.fbp === 'string' ? t.fbp : '',
+    fbc,
+    fbclid,
+    utm: t.utm && typeof t.utm === 'object' ? t.utm : {},
+    landing_url: typeof t.landing_url === 'string' ? t.landing_url.slice(0, 1000) : '',
+    client_ip: clientIpFrom(req),
+    client_ua: (typeof t.user_agent === 'string' && t.user_agent) || String(req.headers['user-agent'] ?? ''),
+  };
+}
+
+/**
+ * Envía el Purchase a Conversions API UNA sola vez por orden (los webhooks de MP se reintentan).
+ * Se llama solo cuando el pago quedó `approved`.
+ */
+async function sendPurchaseCapiOnce(orderId) {
+  const order = getOrder(orderId);
+  if (!order || order.status !== 'approved' || order.capi_purchase_sent) return;
+  const ok = await sendPurchaseEvent(order);
+  if (ok) markOrderCapiPurchaseSent(orderId);
 }
 
 const app = express();
@@ -166,7 +205,7 @@ app.get('/api/config', (_req, res) => res.json({ publicKey: config.mpPublicKey, 
  */
 app.post('/api/checkout', async (req, res) => {
   try {
-    const { items, email } = req.body ?? {};
+    const { items, email, tracking } = req.body ?? {};
     if (!Array.isArray(items) || items.length === 0) return res.status(400).json({ error: 'Sin productos.' });
     if (typeof email !== 'string' || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
       return res.status(400).json({ error: 'Email inválido.' });
@@ -174,6 +213,7 @@ app.post('/api/checkout', async (req, res) => {
 
     const { items: pricedItems, total } = priceItems(items);
     const orderId = crypto.randomUUID();
+    const eventId = crypto.randomUUID();
 
     const order = createOrder({
       id: orderId,
@@ -181,12 +221,14 @@ app.post('/api/checkout', async (req, res) => {
       items: pricedItems,
       amount: total,
       currency: config.currency,
+      eventId,
+      tracking: buildTracking(req, tracking),
     });
 
     const pref = await createPreference(order);
     setOrderPreference(orderId, pref.id);
 
-    res.json({ orderId, initPoint: pref.initPoint });
+    res.json({ orderId, initPoint: pref.initPoint, eventId });
   } catch (err) {
     console.error('[checkout] error:', err?.message ?? err);
     res.status(400).json({ error: err?.message ?? 'No se pudo crear el checkout.' });
@@ -304,6 +346,8 @@ async function handleWebhook(req, res) {
       markOrderApproved(orderId, { paymentId: payment.id, paymentMethod: payment.payment_type_id });
       console.log(`[webhook] Orden ${orderId} APROBADA (pago ${payment.id}).`);
       await deliverEmailOnce(orderId);
+      // Meta Purchase (Conversions API) — solo con pago aprobado, una vez por orden.
+      await sendPurchaseCapiOnce(orderId);
     } else if (payment.status === 'refunded' || payment.status === 'charged_back') {
       setOrderStatus(orderId, 'refunded');
     } else if (['rejected', 'cancelled'].includes(payment.status)) {
@@ -329,6 +373,11 @@ app.get('/api/order/:id', (req, res) => {
     email: order.email,
     items: order.items.map((i) => ({ slug: i.slug, title: i.title })),
     downloads: [],
+    // Datos para el Purchase del navegador (mismo event_id que Conversions API → deduplicación).
+    event_id: order.event_id,
+    value: order.amount,
+    currency: order.currency,
+    content_ids: order.items.map((i) => i.slug),
   };
   if (order.status === 'approved') {
     // Sólo los ítems digitales (con archivo) generan links de descarga.

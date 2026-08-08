@@ -1,6 +1,7 @@
 import Database from 'better-sqlite3';
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
+import crypto from 'node:crypto';
 import { config } from './config.mjs';
 
 mkdirSync(dirname(config.dbPath), { recursive: true });
@@ -27,17 +28,38 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_orders_payment ON orders (mp_payment_id);
 `);
 
-// Migración: flag para no reenviar el email de descarga (bases creadas antes de esta columna).
-try {
-  db.exec('ALTER TABLE orders ADD COLUMN email_sent INTEGER NOT NULL DEFAULT 0');
-} catch {
-  /* la columna ya existe */
+// Migraciones incrementales (bases creadas antes de estas columnas). Cada ALTER es idempotente.
+const MIGRATIONS = [
+  "ALTER TABLE orders ADD COLUMN email_sent INTEGER NOT NULL DEFAULT 0",
+  // Meta Pixel / Conversions API: atribución + deduplicación.
+  "ALTER TABLE orders ADD COLUMN event_id TEXT",
+  "ALTER TABLE orders ADD COLUMN fbp TEXT",
+  "ALTER TABLE orders ADD COLUMN fbc TEXT",
+  "ALTER TABLE orders ADD COLUMN fbclid TEXT",
+  "ALTER TABLE orders ADD COLUMN utm_json TEXT",
+  "ALTER TABLE orders ADD COLUMN landing_url TEXT",
+  "ALTER TABLE orders ADD COLUMN client_ip TEXT",
+  "ALTER TABLE orders ADD COLUMN client_ua TEXT",
+  "ALTER TABLE orders ADD COLUMN capi_purchase_sent INTEGER NOT NULL DEFAULT 0",
+];
+for (const sql of MIGRATIONS) {
+  try {
+    db.exec(sql);
+  } catch {
+    /* la columna ya existe */
+  }
 }
 
 const stmts = {
   insert: db.prepare(`
-    INSERT INTO orders (id, email, items_json, amount, currency, status, mp_preference_id, created_at)
-    VALUES (@id, @email, @items_json, @amount, @currency, 'pending', @mp_preference_id, @created_at)
+    INSERT INTO orders (
+      id, email, items_json, amount, currency, status, mp_preference_id, created_at,
+      event_id, fbp, fbc, fbclid, utm_json, landing_url, client_ip, client_ua
+    )
+    VALUES (
+      @id, @email, @items_json, @amount, @currency, 'pending', @mp_preference_id, @created_at,
+      @event_id, @fbp, @fbc, @fbclid, @utm_json, @landing_url, @client_ip, @client_ua
+    )
   `),
   get: db.prepare('SELECT * FROM orders WHERE id = ?'),
   markApproved: db.prepare(`
@@ -48,6 +70,7 @@ const stmts = {
   `),
   setStatus: db.prepare('UPDATE orders SET status = @status WHERE id = @id'),
   markEmailSent: db.prepare('UPDATE orders SET email_sent = 1 WHERE id = @id'),
+  markCapiSent: db.prepare('UPDATE orders SET capi_purchase_sent = 1 WHERE id = @id'),
   setPreference: db.prepare('UPDATE orders SET mp_preference_id = @mp_preference_id WHERE id = @id'),
   listBetween: db.prepare(`
     SELECT * FROM orders
@@ -57,7 +80,8 @@ const stmts = {
   listAll: db.prepare('SELECT * FROM orders ORDER BY created_at DESC LIMIT @limit'),
 };
 
-export function createOrder({ id, email, items, amount, currency, preferenceId }) {
+export function createOrder({ id, email, items, amount, currency, preferenceId, eventId, tracking }) {
+  const tr = tracking ?? {};
   stmts.insert.run({
     id,
     email,
@@ -66,6 +90,15 @@ export function createOrder({ id, email, items, amount, currency, preferenceId }
     currency,
     mp_preference_id: preferenceId ?? null,
     created_at: new Date().toISOString(),
+    // event_id SIEMPRE presente: se usa para deduplicar el Purchase (navegador + Conversions API).
+    event_id: eventId ?? crypto.randomUUID(),
+    fbp: tr.fbp ?? null,
+    fbc: tr.fbc ?? null,
+    fbclid: tr.fbclid ?? null,
+    utm_json: tr.utm ? JSON.stringify(tr.utm) : null,
+    landing_url: tr.landing_url ?? null,
+    client_ip: tr.client_ip ?? null,
+    client_ua: tr.client_ua ?? null,
   });
   return getOrder(id);
 }
@@ -95,6 +128,11 @@ export function setOrderStatus(id, status) {
 
 export function markOrderEmailSent(id) {
   stmts.markEmailSent.run({ id });
+}
+
+/** Marca que ya se envió el Purchase a Conversions API (evita duplicados en reintentos del webhook). */
+export function markOrderCapiPurchaseSent(id) {
+  stmts.markCapiSent.run({ id });
 }
 
 export function listOrders({ from, to } = {}) {
