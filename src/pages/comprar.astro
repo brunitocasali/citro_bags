@@ -24,6 +24,39 @@ const mainPrice = main.priceArs ?? 0;
     <link rel="stylesheet" href="/ebooks/css/ebooks-landing.css" />
     <link rel="stylesheet" href="/ebooks/css/cart.css" />
     <link rel="icon" href="/ebook/favicon-vc.png" type="image/png" />
+    <style>
+      /* Estados de validación del email (UX de error claro y visible). */
+      .vc-cart__box input[type='email'].is-invalid {
+        border-color: #d64545;
+        background: #fff7f7;
+      }
+      .vc-cart__box input[type='email'].is-invalid:focus {
+        border-color: #d64545;
+        box-shadow: 0 0 0 3px rgba(214, 69, 69, 0.18);
+      }
+      .vc-cart__error {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.4rem;
+        margin: -0.6rem 0 1rem;
+        color: #c0392b;
+        font-size: 0.85rem;
+        font-weight: 600;
+        line-height: 1.35;
+      }
+      .vc-cart__error::before {
+        content: '⚠';
+        flex-shrink: 0;
+      }
+      .vc-cart__note.is-error {
+        color: #c0392b;
+        font-weight: 600;
+      }
+      .vc-btn[disabled] {
+        opacity: 0.65;
+        cursor: progress;
+      }
+    </style>
   </head>
   <body>
     <div class="vc-page">
@@ -101,7 +134,16 @@ const mainPrice = main.priceArs ?? 0;
           </div>
 
           <label class="vc-cart__emaillabel" for="vc-email">Tu email (te enviamos el acceso)</label>
-          <input id="vc-email" type="email" required placeholder="tu@email.com" autocomplete="email" />
+          <input
+            id="vc-email"
+            type="email"
+            inputmode="email"
+            placeholder="tu@email.com"
+            autocomplete="email"
+            aria-describedby="vc-email-error"
+            aria-invalid="false"
+          />
+          <p class="vc-cart__error" id="vc-email-error" role="alert" hidden></p>
 
           <button id="vc-pay" class="vc-btn vc-btn--solid" type="button">Pagar con Mercado Pago</button>
           <p class="vc-cart__note" id="vc-msg">🔒 Pago seguro procesado por Mercado Pago · Garantía de 7 días</p>
@@ -133,6 +175,43 @@ const mainPrice = main.priceArs ?? 0;
       }
       document.querySelectorAll('.vc-upsell').forEach((el) => el.addEventListener('change', recalc));
 
+      // --- Validación de email con feedback visible ---
+      const emailEl = document.getElementById('vc-email');
+      const emailError = document.getElementById('vc-email-error');
+      const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+
+      function showEmailError(text) {
+        emailError.textContent = text;
+        emailError.hidden = false;
+        emailEl.classList.add('is-invalid');
+        emailEl.setAttribute('aria-invalid', 'true');
+      }
+      function clearEmailError() {
+        emailError.hidden = true;
+        emailError.textContent = '';
+        emailEl.classList.remove('is-invalid');
+        emailEl.setAttribute('aria-invalid', 'false');
+      }
+      function validateEmail() {
+        const v = emailEl.value.trim();
+        if (!v) {
+          showEmailError('Ingresá tu email para recibir el acceso a la guía.');
+          return false;
+        }
+        if (!EMAIL_RE.test(v)) {
+          showEmailError('Ese email no parece válido. Revisalo, por favor (ej: nombre@correo.com).');
+          return false;
+        }
+        clearEmailError();
+        return true;
+      }
+      emailEl.addEventListener('input', () => {
+        if (!emailError.hidden) clearEmailError();
+      });
+      emailEl.addEventListener('blur', () => {
+        if (emailEl.value.trim()) validateEmail();
+      });
+
       // Meta: comienzo del checkout (al cargar la página del carrito).
       if (window.vcMeta) {
         window.vcMeta.track('InitiateCheckout', {
@@ -145,12 +224,14 @@ const mainPrice = main.priceArs ?? 0;
       }
 
       document.getElementById('vc-pay').addEventListener('click', async () => {
-        const email = document.getElementById('vc-email').value.trim();
         const msg = document.getElementById('vc-msg');
-        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-          msg.textContent = 'Ingresá un email válido, por favor.';
+        msg.classList.remove('is-error');
+        if (!validateEmail()) {
+          emailEl.focus();
+          emailEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
           return;
         }
+        const email = emailEl.value.trim();
         const items = currentItems();
 
         // Meta: el usuario avanza a pagar (todavía NO es Purchase).
@@ -179,6 +260,7 @@ const mainPrice = main.priceArs ?? 0;
           window.location.href = data.initPoint;
         } catch (e) {
           msg.textContent = e.message || 'No se pudo iniciar el pago. Intentá de nuevo.';
+          msg.classList.add('is-error');
           btn.disabled = false;
         }
       });

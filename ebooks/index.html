@@ -22,15 +22,51 @@
         padding: 0;
       }
       body {
-        background: var(--eb-cream);
+        /* Fondo de marca para que en desktop los costados se vean intencionales, no vacíos. */
+        background: radial-gradient(125% 85% at 50% 0%, #faf5ec 0%, #efe3cf 55%, #e4d5ba 100%);
+        background-attachment: fixed;
+        min-height: 100vh;
         -webkit-font-smoothing: antialiased;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       }
-      /* Columna tipo funnel móvil: ancho completo en celular, centrada en desktop. */
+      /* Columna tipo funnel móvil: ancho completo en celular, centrada y "en tarjeta" en desktop. */
       .eb {
-        max-width: 500px;
+        max-width: 600px;
         margin: 0 auto;
+        padding-bottom: 88px; /* espacio para el botón fijo de compra */
         background: var(--eb-cream);
+        box-shadow: 0 24px 70px rgba(74, 55, 40, 0.22);
+      }
+      /* Botón de compra FIJO, siempre visible al hacer scroll (mobile + desktop). */
+      .eb-cta-bar {
+        position: fixed;
+        left: 50%;
+        bottom: 16px;
+        transform: translateX(-50%);
+        z-index: 50;
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        max-width: min(560px, calc(100vw - 24px));
+        padding: 15px 28px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #c8a24e, #a9812f);
+        color: #fff;
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        text-decoration: none;
+        box-shadow: 0 12px 32px rgba(90, 60, 20, 0.38);
+        white-space: nowrap;
+      }
+      .eb-cta-bar b {
+        font-weight: 800;
+      }
+      .eb-cta-bar__arrow {
+        font-size: 18px;
+      }
+      .eb-cta-bar:active {
+        transform: translateX(-50%) translateY(1px);
       }
       /* Cada sección es una imagen a ancho completo, sin márgenes ni gaps. */
       .eb-sec {
@@ -232,5 +268,11 @@
         ></a>
       </figure>
     </main>
+
+    <!-- CTA fijo: siempre visible al hacer scroll, para que el llamado a la acción sea claro. -->
+    <a class="eb-cta-bar" href="{{checkoutUrl}}" aria-label="Quiero mi guía por $16.990 — ir al checkout">
+      <span>Quiero mi guía · <b>$16.990</b></span>
+      <span class="eb-cta-bar__arrow" aria-hidden="true">→</span>
+    </a>
   </body>
 </html>
