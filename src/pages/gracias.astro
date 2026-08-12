@@ -102,6 +102,17 @@ import MetaPixel from '../components/MetaPixel.astro';
                 hint.textContent = 'Recibimos tu pago. En breve nos comunicamos para coordinar los detalles y el envío.';
                 help.textContent = 'Te enviamos la confirmación a ' + (data.email || 'tu email') + '.';
               }
+              // Cupón 10% OFF en productos personalizados (si lo sumaron al carrito).
+              const hasCoupon = (data.items || []).some((i) => i.slug === 'cupon-personalizados');
+              if (hasCoupon) {
+                const box = document.createElement('div');
+                box.style.cssText =
+                  'margin-top:1.25rem;padding:1rem 1.25rem;border:1px dashed #a68b67;border-radius:14px;background:#fffef9;text-align:center';
+                box.innerHTML =
+                  '<p style="margin:0 0 .35rem;font-weight:700;color:#4a3728">🎁 Tu 10% OFF en productos personalizados</p>' +
+                  '<p style="margin:0;color:#6b5e54;font-size:.92rem;line-height:1.5">Usá el código <b style="font-size:1.15rem;letter-spacing:.05em;color:#4a3728">VICTORIA10</b> al encargar tu retrato o producto personalizado con Victoria.</p>';
+                downloads.appendChild(box);
+              }
               return;
             }
             if (data.status === 'rejected') {

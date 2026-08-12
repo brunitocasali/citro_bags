@@ -120,7 +120,13 @@ const mainPrice = main.priceArs ?? 0;
                     </div>
                     <div class="vc-cart__price">
                       {u.regularPriceArs && <s>{formatArs(u.regularPriceArs)}</s>}
-                      <b>{u.upsellPriceArs != null ? formatArs(u.upsellPriceArs) : ''}</b>
+                      <b>
+                        {u.upsellPriceArs === 0
+                          ? 'GRATIS'
+                          : u.upsellPriceArs != null
+                            ? formatArs(u.upsellPriceArs)
+                            : ''}
+                      </b>
                     </div>
                   </label>
                 ))}

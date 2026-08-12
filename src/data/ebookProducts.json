@@ -70,5 +70,18 @@
     "regularPriceArs": 9990,
     "upsellPriceArs": 4990,
     "available": true
+  },
+  {
+    "slug": "cupon-personalizados",
+    "title": "10% OFF en productos personalizados",
+    "description": "Sumá un descuento en retratos y productos personalizados de tu mascota, hechos a mano por Victoria.",
+    "file": null,
+    "cover": "/ebook/victoria.jpg",
+    "kind": "upsell",
+    "priceArs": null,
+    "regularPriceArs": null,
+    "upsellPriceArs": 0,
+    "available": true,
+    "coupon": "VICTORIA10"
   }
 ]
