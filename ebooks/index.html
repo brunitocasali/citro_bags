@@ -237,6 +237,8 @@
         .vc-reviews { grid-template-columns: 1fr; }
         .vc-features { grid-template-columns: repeat(2, 1fr); }
         .vc-seq__grid { grid-template-columns: 1fr; max-width: 560px; }
+        /* En móvil, mostrar la imagen del ebook ARRIBA del texto del hero. */
+        .vc-hero-main__visual { order: -1; margin: 0 auto 1.5rem; }
       }
     </style>
   </head>
@@ -306,14 +308,8 @@
         </div>
       </section>
 
-      <!-- SECUENCIA EMOCIONAL -->
-      <section class="vc-seq" aria-labelledby="vc-seq-title">
-        <div class="vc-shell">
-          <div class="vc-section-head">
-            <p class="vc-section-head__label">Una historia que quizás conocés</p>
-            <h2 id="vc-seq-title">Cuando se van, el amor se queda.</h2>
-          </div>
-        </div>
+      <!-- SECUENCIA EMOCIONAL (el título va dentro de las imágenes, no se repite en HTML) -->
+      <section class="vc-seq" aria-label="Cuando se van, el amor se queda">
         <div class="vc-shell">
           <div class="vc-seq__grid">
             <figure class="vc-seq__item">
