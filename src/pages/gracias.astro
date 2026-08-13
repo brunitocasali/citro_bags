@@ -146,16 +146,24 @@ import MetaPixel from '../components/MetaPixel.astro';
           box.innerHTML =
             '<p style="margin:0 0 .35rem;font-weight:700;color:#4a3728;font-size:1.05rem">🎨 Creá el retrato digital de tu mascota</p>' +
             '<p style="margin:0 0 .9rem;color:#6b5e54;font-size:.9rem;line-height:1.5">Subí una foto clara de tu mascota (de frente, buena luz, sin accesorios si se puede). En un ratito generamos tu pintura artística.</p>' +
-            '<input id="vc-pet-file" type="file" accept="image/*" style="width:100%;margin-bottom:.75rem" />' +
+            '<label for="vc-pet-file" class="vc-btn vc-btn--ghost" style="width:100%;justify-content:center;cursor:pointer;margin-bottom:.4rem">📷 Elegí una foto</label>' +
+            '<input id="vc-pet-file" type="file" accept="image/*" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0" />' +
+            '<p id="vc-pet-filename" style="margin:0 0 .75rem;font-size:.82rem;color:#6b5e54;text-align:center">Ningún archivo seleccionado</p>' +
             '<button id="vc-pet-btn" class="vc-btn vc-btn--solid" type="button" style="width:100%">Generar mi retrato</button>' +
             '<p id="vc-pet-msg" style="margin:.75rem 0 0;font-size:.85rem;color:#6b5e54;text-align:center"></p>' +
             '<div id="vc-pet-result" style="margin-top:1rem;display:flex;flex-direction:column;gap:.75rem"></div>';
           downloads.appendChild(box);
 
           const fileEl = box.querySelector('#vc-pet-file');
+          const fileName = box.querySelector('#vc-pet-filename');
           const btn = box.querySelector('#vc-pet-btn');
           const msg = box.querySelector('#vc-pet-msg');
           const result = box.querySelector('#vc-pet-result');
+
+          fileEl.addEventListener('change', () => {
+            fileName.textContent =
+              fileEl.files && fileEl.files[0] ? fileEl.files[0].name : 'Ningún archivo seleccionado';
+          });
 
           btn.addEventListener('click', async () => {
             const f = fileEl.files && fileEl.files[0];
