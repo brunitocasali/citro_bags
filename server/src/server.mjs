@@ -5,6 +5,7 @@ import { existsSync, statSync, createReadStream } from 'node:fs';
 import { join } from 'node:path';
 import { config } from './config.mjs';
 import { generateKitPreview } from './kitPreview.mjs';
+import { generatePetPortrait } from './petPortrait.mjs';
 import { priceItems, getProduct } from './catalog.mjs';
 import { priceShopItems } from './shopCatalog.mjs';
 import {
@@ -15,6 +16,7 @@ import {
   setOrderStatus,
   markOrderEmailSent,
   markOrderCapiPurchaseSent,
+  incrementPortraitCount,
 } from './db.mjs';
 import { createPreference, getPayment } from './mp.mjs';
 import { sendPurchaseEvent } from './meta.mjs';
@@ -195,6 +197,68 @@ app.post('/api/kit-preview', (req, res, next) => {
     res.status(status).json({ error: msg, code });
   }
 });
+
+// —— Retrato digital de mascota (upsell del ebook). Sólo para órdenes PAGADAS que lo incluyen. ——
+const PORTRAIT_SLUG = 'retrato-mascota';
+const PORTRAIT_MAX = 3; // permite reintentar si el primer resultado no gustó
+
+app.post(
+  '/api/pet-portrait',
+  (req, res, next) => {
+    uploadPreview.array('foto', 1)(req, res, (err) => {
+      if (err) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({ error: 'La foto pesa demasiado (máx. 20 MB).', code: 'FILE_TOO_LARGE' });
+        }
+        return res.status(400).json({ error: 'No se pudo subir la foto.', code: 'UPLOAD_ERROR' });
+      }
+      next();
+    });
+  },
+  async (req, res) => {
+    try {
+      if (!config.openaiApiKey) {
+        return res.status(503).json({ error: 'La generación no está disponible en este momento.', code: 'NO_KEY' });
+      }
+      const orderId = String(req.body?.order ?? req.body?.orderId ?? '').trim();
+      const order = getOrder(orderId);
+      if (!order || order.status !== 'approved') {
+        return res.status(403).json({ error: 'No encontramos un pago aprobado para esta compra.', code: 'NOT_PAID' });
+      }
+      if (!order.items.some((i) => i.slug === PORTRAIT_SLUG)) {
+        return res.status(403).json({ error: 'Esta compra no incluye el retrato digital.', code: 'NO_PORTRAIT' });
+      }
+      if ((order.portrait_count ?? 0) >= PORTRAIT_MAX) {
+        return res.status(429).json({
+          error: `Ya generaste el máximo de ${PORTRAIT_MAX} retratos para esta compra. Escribinos si necesitás otro.`,
+          code: 'LIMIT',
+        });
+      }
+      const files = req.files ?? [];
+      if (files.length === 0) {
+        return res.status(400).json({ error: 'No llegó la foto de tu mascota. Probá de nuevo.', code: 'NO_IMAGE' });
+      }
+
+      const { b64 } = await generatePetPortrait({ files, orderId });
+      incrementPortraitCount(orderId);
+      const remaining = Math.max(0, PORTRAIT_MAX - ((order.portrait_count ?? 0) + 1));
+      console.log(`[pet-portrait] retrato generado para orden ${orderId} (quedan ${remaining}).`);
+      res.json({ image: `data:image/png;base64,${b64}`, remaining });
+    } catch (err) {
+      console.error('[pet-portrait] error:', err?.message ?? err);
+      const code = err?.code ?? 'ERROR';
+      if (code === 'HEIC_CONVERT_ERROR') {
+        return res.status(400).json({
+          error:
+            'No pudimos procesar esa foto de iPhone. Probá en Ajustes → Cámara → Formatos → "Más compatible", o mandala por WhatsApp.',
+          code,
+        });
+      }
+      const status = code === 'NO_KEY' ? 503 : code === 'NO_IMAGE' ? 400 : 502;
+      res.status(status).json({ error: 'No se pudo generar el retrato. Probá de nuevo en un momento.', code });
+    }
+  }
+);
 
 // Clave pública para el front (Checkout Pro no la necesita, pero queda disponible).
 app.get('/api/config', (_req, res) => res.json({ publicKey: config.mpPublicKey, currency: config.currency }));

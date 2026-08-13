@@ -113,6 +113,9 @@ import MetaPixel from '../components/MetaPixel.astro';
                   '<p style="margin:0;color:#6b5e54;font-size:.92rem;line-height:1.5">Usá el código <b style="font-size:1.15rem;letter-spacing:.05em;color:#4a3728">VICTORIA10</b> al encargar tu retrato o producto personalizado con Victoria.</p>';
                 downloads.appendChild(box);
               }
+              // Retrato digital de mascota: si lo compró, mostramos la herramienta para subir la foto.
+              const hasPortrait = (data.items || []).some((i) => i.slug === 'retrato-mascota');
+              if (hasPortrait) renderPortraitTool();
               return;
             }
             if (data.status === 'rejected') {
@@ -132,6 +135,66 @@ import MetaPixel from '../components/MetaPixel.astro';
               'Si ya pagaste, tu acceso puede tardar unos minutos. Te lo enviaremos por email en cuanto se confirme.';
           }
         }
+
+        // Herramienta para generar el retrato digital (solo si la orden lo incluye y está pagada).
+        function renderPortraitTool() {
+          if (document.getElementById('vc-pet-tool')) return; // no duplicar entre reintentos
+          const box = document.createElement('div');
+          box.id = 'vc-pet-tool';
+          box.style.cssText =
+            'margin-top:1.5rem;padding:1.25rem;border:1px solid #e6dcc9;border-radius:16px;background:#fffef9;text-align:left';
+          box.innerHTML =
+            '<p style="margin:0 0 .35rem;font-weight:700;color:#4a3728;font-size:1.05rem">🎨 Creá el retrato digital de tu mascota</p>' +
+            '<p style="margin:0 0 .9rem;color:#6b5e54;font-size:.9rem;line-height:1.5">Subí una foto clara de tu mascota (de frente, buena luz, sin accesorios si se puede). En un ratito generamos tu pintura artística.</p>' +
+            '<input id="vc-pet-file" type="file" accept="image/*" style="width:100%;margin-bottom:.75rem" />' +
+            '<button id="vc-pet-btn" class="vc-btn vc-btn--solid" type="button" style="width:100%">Generar mi retrato</button>' +
+            '<p id="vc-pet-msg" style="margin:.75rem 0 0;font-size:.85rem;color:#6b5e54;text-align:center"></p>' +
+            '<div id="vc-pet-result" style="margin-top:1rem;display:flex;flex-direction:column;gap:.75rem"></div>';
+          downloads.appendChild(box);
+
+          const fileEl = box.querySelector('#vc-pet-file');
+          const btn = box.querySelector('#vc-pet-btn');
+          const msg = box.querySelector('#vc-pet-msg');
+          const result = box.querySelector('#vc-pet-result');
+
+          btn.addEventListener('click', async () => {
+            const f = fileEl.files && fileEl.files[0];
+            if (!f) {
+              msg.textContent = 'Elegí una foto primero.';
+              return;
+            }
+            btn.disabled = true;
+            msg.textContent = 'Generando tu retrato… puede tardar hasta 1 minuto. No cierres la página.';
+            result.innerHTML = '';
+            try {
+              const fd = new FormData();
+              fd.append('order', orderId);
+              fd.append('foto', f);
+              const res = await fetch(apiBase + '/api/pet-portrait', { method: 'POST', body: fd });
+              const data = await res.json();
+              if (!res.ok || !data.image) throw new Error(data.error || 'No se pudo generar el retrato.');
+              const img = document.createElement('img');
+              img.src = data.image;
+              img.alt = 'Retrato artístico de tu mascota';
+              img.style.cssText = 'width:100%;border-radius:12px;box-shadow:0 12px 32px rgba(61,52,45,.18)';
+              const dl = document.createElement('a');
+              dl.href = data.image;
+              dl.download = 'retrato-mascota.png';
+              dl.className = 'vc-btn vc-btn--solid';
+              dl.textContent = '⬇ Descargar mi retrato';
+              result.appendChild(img);
+              result.appendChild(dl);
+              const rem = typeof data.remaining === 'number' ? data.remaining : 0;
+              msg.textContent = rem > 0 ? '¿No te convenció? Podés generar ' + rem + ' más.' : '';
+              btn.disabled = rem === 0;
+              if (rem === 0) btn.style.display = 'none';
+            } catch (e) {
+              msg.textContent = e.message || 'No se pudo generar el retrato. Probá de nuevo.';
+              btn.disabled = false;
+            }
+          });
+        }
+
         check();
       }
     </script>

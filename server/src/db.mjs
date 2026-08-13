@@ -41,6 +41,8 @@ const MIGRATIONS = [
   "ALTER TABLE orders ADD COLUMN client_ip TEXT",
   "ALTER TABLE orders ADD COLUMN client_ua TEXT",
   "ALTER TABLE orders ADD COLUMN capi_purchase_sent INTEGER NOT NULL DEFAULT 0",
+  // Retrato digital de mascota: cuántos se generaron para esta orden (límite anti-abuso).
+  "ALTER TABLE orders ADD COLUMN portrait_count INTEGER NOT NULL DEFAULT 0",
 ];
 for (const sql of MIGRATIONS) {
   try {
@@ -71,6 +73,7 @@ const stmts = {
   setStatus: db.prepare('UPDATE orders SET status = @status WHERE id = @id'),
   markEmailSent: db.prepare('UPDATE orders SET email_sent = 1 WHERE id = @id'),
   markCapiSent: db.prepare('UPDATE orders SET capi_purchase_sent = 1 WHERE id = @id'),
+  incPortrait: db.prepare('UPDATE orders SET portrait_count = portrait_count + 1 WHERE id = @id'),
   setPreference: db.prepare('UPDATE orders SET mp_preference_id = @mp_preference_id WHERE id = @id'),
   listBetween: db.prepare(`
     SELECT * FROM orders
@@ -133,6 +136,11 @@ export function markOrderEmailSent(id) {
 /** Marca que ya se envió el Purchase a Conversions API (evita duplicados en reintentos del webhook). */
 export function markOrderCapiPurchaseSent(id) {
   stmts.markCapiSent.run({ id });
+}
+
+/** Suma 1 al contador de retratos generados para una orden (límite anti-abuso). */
+export function incrementPortraitCount(id) {
+  stmts.incPortrait.run({ id });
 }
 
 export function listOrders({ from, to } = {}) {

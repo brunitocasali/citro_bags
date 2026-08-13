@@ -88,4 +88,8 @@ export const config = {
   kitPreviewsDir: process.env.KIT_PREVIEWS_DIR
     ? resolve(process.env.KIT_PREVIEWS_DIR)
     : join(__dirname, '..', 'data', 'kit-previews'),
+  // Carpeta de respaldo de los retratos de mascota generados (producto del ebook).
+  petPortraitsDir: process.env.PET_PORTRAITS_DIR
+    ? resolve(process.env.PET_PORTRAITS_DIR)
+    : join(__dirname, '..', 'data', 'pet-portraits'),
 };
