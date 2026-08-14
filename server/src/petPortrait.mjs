@@ -67,7 +67,7 @@ function savePortrait(b64, meta) {
     join(config.petPortraitsDir, `${base}.json`),
     JSON.stringify({ ...meta, file: `${base}.png`, createdAt: new Date().toISOString() }, null, 2)
   );
-  return join(config.petPortraitsDir, `${base}.png`);
+  return `${base}.png`;
 }
 
 /**
@@ -133,6 +133,6 @@ export async function generatePetPortrait({ files, orderId }) {
     throw err;
   }
 
-  const savedPath = savePortrait(b64, { orderId: orderId || '' });
-  return { b64, savedPath };
+  const fileName = savePortrait(b64, { orderId: orderId || '' });
+  return { b64, fileName };
 }

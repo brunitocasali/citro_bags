@@ -202,6 +202,22 @@ app.post('/api/kit-preview', (req, res, next) => {
 const PORTRAIT_SLUG = 'retrato-mascota';
 const PORTRAIT_MAX = 3; // permite reintentar si el primer resultado no gustó
 
+/** Manda el retrato por email con un link de descarga real (best-effort). */
+async function sendPortraitEmail(to, url) {
+  if (!config.resendApiKey) return;
+  const html = `<div style="font-family:sans-serif;max-width:520px;margin:auto;color:#4a3728">
+    <h2>Tu retrato está listo 🎨</h2>
+    <p>Gracias por tu compra. Descargá tu retrato artístico acá:</p>
+    <p><a href="${url}" style="display:inline-block;background:#a68b67;color:#fff;padding:12px 24px;border-radius:999px;text-decoration:none;font-weight:600">⬇ Descargar mi retrato</a></p>
+    <p style="color:#999;font-size:12px">El link es temporal. También podés descargarlo desde la página de tu compra.</p>
+    <p>— Victoria Citro</p></div>`;
+  await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${config.resendApiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ from: config.mailFrom, to, subject: 'Tu retrato de mascota está listo 🎨', html }),
+  });
+}
+
 app.post(
   '/api/pet-portrait',
   (req, res, next) => {
@@ -239,11 +255,17 @@ app.post(
         return res.status(400).json({ error: 'No llegó la foto de tu mascota. Probá de nuevo.', code: 'NO_IMAGE' });
       }
 
-      const { b64 } = await generatePetPortrait({ files, orderId });
+      const { b64, fileName } = await generatePetPortrait({ files, orderId });
       incrementPortraitCount(orderId);
       const remaining = Math.max(0, PORTRAIT_MAX - ((order.portrait_count ?? 0) + 1));
+      const token = makeDownloadToken(orderId, fileName, config.emailDownloadTtlHours);
+      const downloadUrl = `${config.apiUrl}/api/pet-portrait/file/${token}`;
       console.log(`[pet-portrait] retrato generado para orden ${orderId} (quedan ${remaining}).`);
-      res.json({ image: `data:image/png;base64,${b64}`, remaining });
+      // Email con el retrato (best-effort; no rompe la respuesta).
+      sendPortraitEmail(order.email, downloadUrl).catch((e) =>
+        console.error('[pet-portrait] email del retrato falló:', e?.message ?? e)
+      );
+      res.json({ image: `data:image/png;base64,${b64}`, downloadUrl, remaining });
     } catch (err) {
       console.error('[pet-portrait] error:', err?.message ?? err);
       const code = err?.code ?? 'ERROR';
@@ -259,6 +281,31 @@ app.post(
     }
   }
 );
+
+/**
+ * Descarga del retrato generado desde una URL real firmada (Content-Disposition: attachment).
+ * Necesario para que descargue bien en móvil (iOS) y desde el email — un data: URL no baja.
+ */
+app.get('/api/pet-portrait/file/:token', (req, res) => {
+  const data = verifyDownloadToken(req.params.token);
+  if (!data) return res.status(403).send('Link inválido o vencido.');
+
+  const order = getOrder(data.orderId);
+  if (!order || order.status !== 'approved') return res.status(403).send('Pago no confirmado.');
+  if (!order.items.some((i) => i.slug === PORTRAIT_SLUG)) return res.status(403).send('Sin retrato en esta compra.');
+
+  // data.slug guarda el nombre del archivo. Sanitizar a basename para evitar path traversal.
+  const fileName = String(data.slug).replace(/[\\/]/g, '');
+  if (!/^[\w.\-]+\.png$/.test(fileName)) return res.status(400).send('Archivo inválido.');
+
+  const filePath = join(config.petPortraitsDir, fileName);
+  if (!existsSync(filePath)) return res.status(404).send('Retrato no encontrado.');
+
+  res.set('Content-Type', 'image/png');
+  res.set('Content-Length', String(statSync(filePath).size));
+  res.set('Content-Disposition', 'attachment; filename="retrato-victoria-citro.png"');
+  createReadStream(filePath).pipe(res);
+});
 
 // Clave pública para el front (Checkout Pro no la necesita, pero queda disponible).
 app.get('/api/config', (_req, res) => res.json({ publicKey: config.mpPublicKey, currency: config.currency }));

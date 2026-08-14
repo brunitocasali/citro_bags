@@ -186,14 +186,17 @@ import MetaPixel from '../components/MetaPixel.astro';
               img.alt = 'Retrato artístico de tu mascota';
               img.style.cssText = 'width:100%;border-radius:12px;box-shadow:0 12px 32px rgba(61,52,45,.18)';
               const dl = document.createElement('a');
-              dl.href = data.image;
-              dl.download = 'retrato-mascota.png';
+              // URL real firmada (descarga bien en móvil y desde el email); fallback al data URL.
+              dl.href = data.downloadUrl || data.image;
+              dl.download = 'retrato-victoria-citro.png';
               dl.className = 'vc-btn vc-btn--solid';
               dl.textContent = '⬇ Descargar mi retrato';
               result.appendChild(img);
               result.appendChild(dl);
               const rem = typeof data.remaining === 'number' ? data.remaining : 0;
-              msg.textContent = rem > 0 ? '¿No te convenció? Podés generar ' + rem + ' más.' : '';
+              msg.textContent =
+                (data.downloadUrl ? 'Te lo enviamos también por email. ' : '') +
+                (rem > 0 ? '¿No te convenció? Podés generar ' + rem + ' más.' : '');
               btn.disabled = rem === 0;
               if (rem === 0) btn.style.display = 'none';
             } catch (e) {
