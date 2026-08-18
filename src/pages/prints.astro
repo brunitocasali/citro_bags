@@ -1,0 +1,447 @@
+---
+// Landing "Prints" de Victoria Citro: retratos de mascota sobre productos (kits + sueltos).
+// Etapa 1: página estática de venta. El flujo postcompra (subir foto → preview → aprobar) es etapa 2.
+import shopProducts from '../data/shopProducts.json';
+
+const get = (id) => shopProducts.find((p) => p.id === id);
+const kitBolsoTaza = get('prints-bolso-taza');
+const kitRecuerdo = get('prints-recuerdo');
+const kitFull = get('prints-full');
+const tote = get('tote');
+const taza = get('taza');
+const cuadro = get('cuadro');
+const remera = get('remera');
+const price = (p) => (p && p.priceArs != null ? '$' + Number(p.priceArs).toLocaleString('es-AR') : '$—');
+const IG = 'https://www.instagram.com/victoria.citro/';
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Convertí la foto de tu mascota en un retrato artístico y llevalo a bolsos, tazas, cuadros y remeras. Preview antes de producir · Hasta 3 ajustes · Envíos a todo el país."
+    />
+    <title>Prints · Tu mascota en productos únicos — Victoria Citro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400..700;1,400..600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" href="/ebook/favicon-vc.png" type="image/png" />
+    <style>
+      :root {
+        --cream: #fbf7f0;
+        --cream-2: #f5ede0;
+        --rose: #f3e3e0;
+        --text: #4a3728;
+        --muted: #7a6a58;
+        --gold: #c8a24e;
+        --gold-dark: #a9812f;
+        --accent: #a68b67;
+        --line: rgba(74, 55, 40, 0.12);
+        --sans: 'Montserrat', system-ui, sans-serif;
+        --serif: 'Playfair Display', Georgia, serif;
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        font-family: var(--sans);
+        color: var(--text);
+        background: var(--cream);
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+      img { max-width: 100%; display: block; }
+      a { color: inherit; }
+      .wrap { max-width: 1140px; margin: 0 auto; padding: 0 clamp(1rem, 4vw, 2rem); }
+      .section { padding: clamp(2.75rem, 7vw, 4.5rem) 0; }
+      .center { text-align: center; }
+      .kicker {
+        font-size: 0.72rem; font-weight: 700; letter-spacing: 0.28em; text-transform: uppercase;
+        color: var(--gold-dark); margin: 0 0 0.6rem;
+      }
+      h1, h2, h3 { font-family: var(--serif); font-weight: 500; color: var(--text); line-height: 1.18; }
+      .h-lg { font-size: clamp(1.9rem, 5vw, 3rem); margin: 0 0 0.6rem; }
+      .h-md { font-size: clamp(1.5rem, 3.6vw, 2.2rem); margin: 0 0 0.5rem; }
+      .lead { color: var(--muted); font-size: clamp(1rem, 2.2vw, 1.15rem); max-width: 46ch; }
+      .center .lead { margin-left: auto; margin-right: auto; }
+
+      .btn {
+        display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+        font-family: var(--sans); font-weight: 700; font-size: 0.95rem; letter-spacing: 0.02em;
+        text-decoration: none; border-radius: 999px; padding: 0.95rem 1.8rem; cursor: pointer; border: none;
+        transition: transform 0.12s ease, box-shadow 0.15s ease, background 0.15s ease;
+      }
+      .btn--solid { background: linear-gradient(135deg, #c8a24e, #a9812f); color: #fff; box-shadow: 0 10px 26px rgba(169, 129, 47, 0.28); }
+      .btn--solid:hover { transform: translateY(-1px); }
+      .btn--dark { background: var(--text); color: #fff; }
+      .btn--ghost { background: transparent; color: var(--text); border: 1px solid rgba(74, 55, 40, 0.4); }
+      .btn--block { display: flex; width: 100%; }
+
+      /* Header */
+      header.nav {
+        position: sticky; top: 0; z-index: 50; background: rgba(251, 247, 240, 0.92);
+        backdrop-filter: blur(10px); border-bottom: 1px solid var(--line);
+      }
+      .nav__inner { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.9rem clamp(1rem, 4vw, 2rem); max-width: 1140px; margin: 0 auto; }
+      .brand { font-family: var(--serif); font-size: 1.2rem; letter-spacing: 0.02em; text-decoration: none; color: var(--text); }
+      .nav__links { display: none; gap: 1.4rem; font-size: 0.85rem; }
+      .nav__links a { text-decoration: none; color: var(--muted); }
+      .nav__links a:hover { color: var(--text); }
+      @media (min-width: 900px) { .nav__links { display: flex; } }
+
+      /* Hero */
+      .hero { background: radial-gradient(120% 90% at 50% 0%, #fff, var(--cream) 60%); }
+      .hero__grid { display: grid; gap: clamp(1.5rem, 4vw, 3rem); align-items: center; }
+      @media (min-width: 900px) { .hero__grid { grid-template-columns: 1fr 1fr; } }
+      .hero__img { border-radius: 20px; box-shadow: 0 24px 60px rgba(61, 52, 45, 0.16); width: 100%; height: auto; }
+      .hero__benefits { display: flex; flex-wrap: wrap; gap: 0.6rem 1.4rem; margin-top: 1.4rem; }
+      .hero__benefits span { font-size: 0.85rem; color: var(--muted); display: inline-flex; align-items: center; gap: 0.4rem; }
+      .hero__benefits b { color: var(--gold-dark); }
+
+      /* Kits */
+      .kits { display: grid; gap: 1.25rem; }
+      @media (min-width: 820px) { .kits { grid-template-columns: repeat(3, 1fr); align-items: stretch; } }
+      .kit {
+        background: #fff; border-radius: 20px; overflow: hidden; display: flex; flex-direction: column;
+        border: 1px solid var(--line); box-shadow: 0 10px 30px rgba(61, 52, 45, 0.07); position: relative;
+      }
+      .kit--featured { border: 2px solid var(--gold); box-shadow: 0 16px 40px rgba(169, 129, 47, 0.18); }
+      .kit__tag {
+        position: absolute; top: 14px; left: 14px; background: var(--gold-dark); color: #fff;
+        font-size: 0.66rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; padding: 0.35rem 0.7rem; border-radius: 999px;
+      }
+      .kit img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; }
+      .kit__body { padding: 1.25rem 1.35rem 1.5rem; display: flex; flex-direction: column; flex: 1; }
+      .kit__body h3 { font-size: 1.3rem; margin: 0 0 0.2rem; }
+      .kit__incl { font-size: 0.9rem; color: var(--gold-dark); font-weight: 600; margin: 0 0 0.5rem; }
+      .kit__txt { font-size: 0.9rem; color: var(--muted); margin: 0 0 1rem; flex: 1; }
+      .kit__price { display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 1rem; }
+      .kit__price b { font-family: var(--serif); font-size: 1.7rem; }
+      .kit__price span { font-size: 0.8rem; color: #2e9e6b; font-weight: 600; }
+
+      /* Product grid */
+      .prods { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+      @media (min-width: 820px) { .prods { grid-template-columns: repeat(4, 1fr); } }
+      .prod { background: #fff; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; text-align: center; }
+      .prod img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; }
+      .prod__b { padding: 0.85rem 0.85rem 1.1rem; }
+      .prod__b strong { display: block; font-size: 0.92rem; }
+      .prod__b .p { color: var(--text); font-weight: 700; margin: 0.15rem 0 0.7rem; }
+
+      /* Feature band */
+      .band { background: var(--cream-2); }
+      .steps { display: grid; gap: 1.1rem; }
+      @media (min-width: 760px) { .steps { grid-template-columns: repeat(3, 1fr); } }
+      .step { background: #fff; border-radius: 16px; padding: 1.4rem; border: 1px solid var(--line); }
+      .step__n { font-family: var(--serif); font-size: 1.6rem; color: var(--gold); }
+      .step h3 { font-size: 1.1rem; margin: 0.3rem 0 0.35rem; }
+      .step p { font-size: 0.9rem; color: var(--muted); margin: 0; }
+      .pill { display: inline-block; background: rgba(200, 162, 78, 0.16); color: var(--gold-dark); font-weight: 700; font-size: 0.78rem; padding: 0.35rem 0.8rem; border-radius: 999px; margin-top: 0.6rem; }
+
+      .benefits { display: grid; gap: 1.1rem; }
+      @media (min-width: 760px) { .benefits { grid-template-columns: repeat(2, 1fr); } }
+      .benefit { display: flex; gap: 0.9rem; }
+      .benefit .dot { flex-shrink: 0; width: 12px; height: 12px; border-radius: 50%; background: var(--gold); margin-top: 0.45rem; }
+      .benefit h3 { font-size: 1.1rem; margin: 0 0 0.2rem; }
+      .benefit p { font-size: 0.92rem; color: var(--muted); margin: 0; }
+
+      .trust { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; text-align: center; }
+      @media (min-width: 760px) { .trust { grid-template-columns: repeat(4, 1fr); } }
+      .trust div { font-size: 0.9rem; color: var(--muted); }
+
+      /* Gallery (pintados a mano) */
+      .premium { background: linear-gradient(180deg, #2a2420, #3a322b); color: #f3ece0; }
+      .premium .kicker { color: var(--gold); }
+      .premium h2, .premium h3 { color: #fff; }
+      .premium .lead { color: #d9cfc1; }
+      .gallery { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.9rem; }
+      @media (min-width: 820px) { .gallery { grid-template-columns: repeat(3, 1fr); } }
+      .gallery img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 12px; }
+
+      /* FAQ */
+      .faq { max-width: 780px; margin: 0 auto; }
+      .faq details { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 0 1.3rem; margin-bottom: 0.7rem; }
+      .faq summary { list-style: none; cursor: pointer; padding: 1.05rem 2rem 1.05rem 0; font-weight: 600; position: relative; }
+      .faq summary::-webkit-details-marker { display: none; }
+      .faq summary::after { content: '+'; position: absolute; right: 0; top: 50%; transform: translateY(-50%); color: var(--gold-dark); font-size: 1.3rem; }
+      .faq details[open] summary::after { content: '−'; }
+      .faq p { margin: 0; padding: 0 0 1.15rem; color: var(--muted); font-size: 0.95rem; }
+
+      /* Autora / final */
+      .author { display: grid; gap: 1.5rem; align-items: center; }
+      @media (min-width: 820px) { .author { grid-template-columns: 0.85fr 1.15fr; } }
+      .author img { border-radius: 20px; width: 100%; box-shadow: 0 18px 44px rgba(61, 52, 45, 0.16); }
+      .final { background: linear-gradient(180deg, var(--rose), var(--cream)); text-align: center; }
+      footer.ft { background: var(--cream-2); border-top: 1px solid var(--line); font-size: 0.85rem; color: var(--muted); }
+      .ft__grid { display: flex; flex-wrap: wrap; gap: 0.6rem 1.4rem; justify-content: center; padding: 2rem 0 0.6rem; }
+      .ft__grid a { text-decoration: none; color: var(--muted); }
+      .cta-row { display: flex; flex-wrap: wrap; gap: 0.8rem; justify-content: center; margin-top: 1.4rem; }
+      .note { font-size: 0.82rem; color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <header class="nav">
+      <div class="nav__inner">
+        <a class="brand" href="/prints">Victoria Citro</a>
+        <nav class="nav__links">
+          <a href="#kits">Kits</a>
+          <a href="#como">Cómo funciona</a>
+          <a href="#clientes">Clientes</a>
+          <a href="#faq">Preguntas frecuentes</a>
+          <a href="#autora">Sobre Victoria</a>
+        </nav>
+        <a class="btn btn--solid" href="#kits">Creá el tuyo</a>
+      </div>
+    </header>
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="wrap section">
+        <div class="hero__grid">
+          <div>
+            <p class="kicker">Retratos personalizados</p>
+            <h1 class="h-lg">Tu mascota, siempre con vos.</h1>
+            <p class="lead">
+              Convertimos su foto en un retrato personalizado para llevarlo a productos únicos creados para vos.
+            </p>
+            <div class="cta-row" style="justify-content:flex-start">
+              <a class="btn btn--solid" href="#kits">Creá el tuyo</a>
+              <a class="btn btn--ghost" href="#kits">Ver los kits</a>
+            </div>
+            <div class="hero__benefits">
+              <span><b>✓</b> Preview antes de producir</span>
+              <span><b>✓</b> Hasta 3 ajustes</span>
+              <span><b>✓</b> Envíos a todo el país</span>
+            </div>
+          </div>
+          <picture>
+            <source media="(max-width: 899px)" srcset="/prints/hero-mobile.webp" />
+            <img class="hero__img" src="/prints/hero-desktop.webp" alt="Productos con el retrato de tu mascota: bolso, taza, cuadro y remera" width="1600" height="854" loading="eager" />
+          </picture>
+        </div>
+      </div>
+    </section>
+
+    <!-- KITS -->
+    <section class="section" id="kits">
+      <div class="wrap">
+        <div class="center" style="margin-bottom:2rem">
+          <p class="kicker">Kits</p>
+          <h2 class="h-md">Elegí tu kit favorito</h2>
+          <p class="lead">Un mismo retrato. Diferentes formas de tenerlo cerca. <b>Cada producto puede llevar una imagen distinta.</b></p>
+        </div>
+        <div class="kits">
+          <div class="kit">
+            <img src="/prints/kit-1.webp" alt="Kit Bolso + Taza" loading="lazy" />
+            <div class="kit__body">
+              <h3>Bolso + Taza</h3>
+              <p class="kit__incl">Tote bag + taza</p>
+              <p class="kit__txt">Una forma simple de llevar a tu mascota con vos todos los días.</p>
+              <div class="kit__price"><b>{price(kitBolsoTaza)}</b><span>Envío gratis</span></div>
+              <a class="btn btn--solid btn--block" href="/pagar?producto=prints-bolso-taza">Elegir este kit</a>
+            </div>
+          </div>
+          <div class="kit kit--featured">
+            <span class="kit__tag">Más elegido</span>
+            <img src="/prints/kit-2.webp" alt="Kit Recuerdo: Bolso + Taza + Cuadro" loading="lazy" />
+            <div class="kit__body">
+              <h3>Kit Recuerdo</h3>
+              <p class="kit__incl">Tote bag + taza + cuadro</p>
+              <p class="kit__txt">Un recuerdo especial para tener siempre cerca a quien forma parte de tu historia.</p>
+              <div class="kit__price"><b>{price(kitRecuerdo)}</b><span>Envío gratis</span></div>
+              <a class="btn btn--solid btn--block" href="/pagar?producto=prints-recuerdo">Elegir Kit Recuerdo</a>
+            </div>
+          </div>
+          <div class="kit">
+            <img src="/prints/kit-3.webp" alt="Kit Full: Bolso + Taza + Cuadro + Remera" loading="lazy" />
+            <div class="kit__body">
+              <h3>Kit Full</h3>
+              <p class="kit__incl">Tote bag + taza + cuadro + remera</p>
+              <p class="kit__txt">La experiencia completa con el retrato de tu mascota en tus productos favoritos.</p>
+              <div class="kit__price"><b>{price(kitFull)}</b><span>Envío gratis</span></div>
+              <a class="btn btn--solid btn--block" href="/pagar?producto=prints-full">Quiero el Kit Full</a>
+            </div>
+          </div>
+        </div>
+        <p class="center note" style="margin-top:1.25rem">Podés usar una imagen distinta en cada producto del kit.</p>
+      </div>
+    </section>
+
+    <!-- PRODUCTOS INDIVIDUALES -->
+    <section class="section band">
+      <div class="wrap">
+        <div class="center" style="margin-bottom:2rem">
+          <p class="kicker">También sueltos</p>
+          <h2 class="h-md">¿Preferís un solo producto?</h2>
+          <p class="lead">Elegí el que más te guste. Si sumás 3 o más, te conviene un kit (mejor precio + envío gratis).</p>
+        </div>
+        <div class="prods">
+          <div class="prod"><img src="/prints/kit-1.webp" alt="Tote bag" loading="lazy" /><div class="prod__b"><strong>Tote bag</strong><div class="p">{price(tote)}</div><a class="btn btn--ghost btn--block" href="/pagar?producto=tote">Agregar</a></div></div>
+          <div class="prod"><img src="/prints/kit-1.webp" alt="Taza" loading="lazy" /><div class="prod__b"><strong>Taza</strong><div class="p">{price(taza)}</div><a class="btn btn--ghost btn--block" href="/pagar?producto=taza">Agregar</a></div></div>
+          <div class="prod"><img src="/prints/kit-2.webp" alt="Cuadro" loading="lazy" /><div class="prod__b"><strong>Cuadro</strong><div class="p">{price(cuadro)}</div><a class="btn btn--ghost btn--block" href="/pagar?producto=cuadro">Agregar</a></div></div>
+          <div class="prod"><img src="/prints/kit-3.webp" alt="Remera" loading="lazy" /><div class="prod__b"><strong>Remera</strong><div class="p">{price(remera)}</div><a class="btn btn--ghost btn--block" href="/pagar?producto=remera">Agregar</a></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CÓMO FUNCIONA -->
+    <section class="section" id="como">
+      <div class="wrap">
+        <div class="center" style="margin-bottom:2rem">
+          <p class="kicker">Cómo funciona</p>
+          <h2 class="h-md">Así de simple</h2>
+          <p class="lead">Vos elegís. Nosotros nos ocupamos del resto.</p>
+        </div>
+        <div class="steps">
+          <div class="step"><div class="step__n">1</div><h3>Elegí tu kit o producto</h3><p>Elegí la opción que más te guste y realizá tu compra.</p></div>
+          <div class="step"><div class="step__n">2</div><h3>Subí la foto de tu mascota</h3><p>Después de comprar vas a poder subir la foto para crear su retrato. Elegí una imagen clara, con buena luz y donde se vea bien su carita.</p></div>
+          <div class="step"><div class="step__n">3</div><h3>Creamos su retrato</h3><p>Transformamos su foto en un retrato digital con la estética artística de Victoria Citro.</p></div>
+          <div class="step"><div class="step__n">4</div><h3>Recibí tu preview</h3><p>Antes de producir, te enviamos por email una vista previa para que veas cómo va a quedar.</p></div>
+          <div class="step"><div class="step__n">5</div><h3>Aprobalo o pedí cambios</h3><p>¿Querés modificar algo?<span class="pill">Hasta 3 ajustes</span></p></div>
+          <div class="step"><div class="step__n">6</div><h3>Lo producimos y te lo enviamos</h3><p>Cuando aprobás el diseño, producimos tus productos y preparamos el envío. No producimos nada hasta que apruebes tu preview.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- POR QUÉ ELEGIR -->
+    <section class="section band">
+      <div class="wrap">
+        <div class="center" style="margin-bottom:2rem">
+          <p class="kicker">Por qué Victoria Citro</p>
+          <h2 class="h-md">Hecho para contar su historia</h2>
+        </div>
+        <div class="benefits">
+          <div class="benefit"><div class="dot"></div><div><h3>Retrato personalizado</h3><p>Cada mascota es única. Su retrato también.</p></div></div>
+          <div class="benefit"><div class="dot"></div><div><h3>Preview antes de producir</h3><p>Ves cómo va a quedar antes de que fabriquemos tu pedido.</p></div></div>
+          <div class="benefit"><div class="dot"></div><div><h3>Hasta 3 ajustes</h3><p>Podés pedir modificaciones antes de la aprobación final.</p></div></div>
+          <div class="benefit"><div class="dot"></div><div><h3>Una mirada artística</h3><p>Cada diseño lleva la identidad visual y la estética de Victoria Citro.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRUEBA SOCIAL -->
+    <section class="section" id="clientes">
+      <div class="wrap center">
+        <p class="kicker">Clientes reales</p>
+        <h2 class="h-md">Ellos ya tienen el suyo</h2>
+        <p class="lead">Trabajos reales. Clientes reales. Historias reales.</p>
+        <img src="/email/05_clientes.jpg" alt="Clientes felices con sus productos personalizados" style="border-radius:18px;margin:1.5rem auto 0;box-shadow:0 18px 44px rgba(61,52,45,.14)" loading="lazy" />
+      </div>
+    </section>
+
+    <!-- BLOQUE CONFIANZA -->
+    <section class="section band">
+      <div class="wrap">
+        <div class="trust">
+          <div>🔒<br />Compra segura</div>
+          <div>👀<br />Preview antes de producir</div>
+          <div>✏️<br />Hasta 3 ajustes incluidos</div>
+          <div>🚚<br />Envíos a todo el país</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section" id="faq">
+      <div class="wrap">
+        <div class="center" style="margin-bottom:2rem"><p class="kicker">FAQ</p><h2 class="h-md">Preguntas frecuentes</h2></div>
+        <div class="faq">
+          <details><summary>¿Cuándo subo la foto?</summary><p>Después de realizar tu compra. Al finalizar el pedido vas a poder cargar la imagen de tu mascota.</p></details>
+          <details><summary>¿Qué tipo de foto tengo que enviar?</summary><p>Una foto clara, con buena luz y donde se vea bien su cara. Cuanto mejor se vea la mascota, mejor podremos trabajar el retrato.</p></details>
+          <details><summary>¿Cuándo recibo la preview?</summary><p>Una vez recibida tu foto, preparamos la primera versión y te la enviamos por email. (Plazo a confirmar.)</p></details>
+          <details><summary>¿Puedo pedir cambios?</summary><p>Sí. Tenés hasta 3 rondas de ajustes incluidas antes de aprobar el diseño final.</p></details>
+          <details><summary>¿Cuándo producen mi pedido?</summary><p>Solamente después de que apruebes la preview.</p></details>
+          <details><summary>¿Hacen envíos a todo Argentina?</summary><p>Sí. Realizamos envíos a todo el país.</p></details>
+          <details><summary>¿Puedo comprar un solo producto?</summary><p>Sí. También podés elegir bolso, taza, cuadro o remera de forma individual.</p></details>
+          <details><summary>¿Puedo armar mi propio kit?</summary><p>Sí. Los kits combinan los productos con mejor precio y envío gratis. Cada producto puede llevar una imagen distinta.</p></details>
+          <details><summary>¿Puedo incluir más de una mascota?</summary><p>Sí, dependiendo del producto y del diseño. Consultanos para confirmar tu caso.</p></details>
+        </div>
+      </div>
+    </section>
+
+    <!-- AUTORA -->
+    <section class="section band" id="autora">
+      <div class="wrap">
+        <div class="author">
+          <img src="/prints/artista-1.webp" alt="Victoria Citro, artista" loading="lazy" />
+          <div>
+            <p class="kicker">Conocé a Victoria</p>
+            <h2 class="h-md">Arte para honrar, celebrar y recordar</h2>
+            <p class="lead" style="max-width:52ch">
+              Soy Victoria Citro, artista y creadora de esta marca. Mi trabajo nace del vínculo enorme que tenemos con
+              nuestros animales y las ganas de transformarlo en algo que podamos conservar. Creo retratos y piezas
+              inspiradas en esas historias, desde esta colección personalizada hasta obras completamente pintadas a mano.
+            </p>
+            <div class="cta-row" style="justify-content:flex-start">
+              <a class="btn btn--ghost" href={IG} target="_blank" rel="noopener noreferrer">Seguir en Instagram</a>
+              <a class="btn btn--ghost" href="https://victoriacitro.net/" target="_blank" rel="noopener noreferrer">Conocer más</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PINTADOS A MANO (PREMIUM) -->
+    <section class="section premium">
+      <div class="wrap">
+        <div class="center" style="margin-bottom:2rem">
+          <p class="kicker">Pintado a mano por Victoria · Cupos limitados</p>
+          <h2 class="h-md">¿Buscás algo completamente único?</h2>
+          <p class="lead">También realizo retratos, bolsos y piezas completamente pintadas a mano, una por una y por encargo.</p>
+        </div>
+        <div class="gallery">
+          <img src="/prints/bolso-pintado.webp" alt="Bolso pintado a mano" loading="lazy" />
+          <img src="/prints/bolso-pug.webp" alt="Bolso pintado a mano - pug" loading="lazy" />
+          <img src="/prints/bolso-daisy.webp" alt="Bolso pintado a mano - Daisy" loading="lazy" />
+          <img src="/prints/bolso-delfina.webp" alt="Bolso pintado a mano - Delfina" loading="lazy" />
+          <img src="/prints/bolso-gatoperros.webp" alt="Bolso pintado a mano - gato y perros" loading="lazy" />
+          <img src="/prints/cuadros-pintados.webp" alt="Cuadros pintados a mano" loading="lazy" />
+        </div>
+        <div class="center" style="margin-top:2rem">
+          <a class="btn btn--solid" href={IG} target="_blank" rel="noopener noreferrer">Consultar un encargo</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- EBOOK -->
+    <section class="section">
+      <div class="wrap center">
+        <p class="kicker">Acompañamiento</p>
+        <h2 class="h-md">¿Estás atravesando una pérdida?</h2>
+        <p class="lead">Creé una guía para acompañarte en el duelo por tu mascota y transitar su ausencia con amor.</p>
+        <div class="cta-row"><a class="btn btn--ghost" href="/ebooks">Conocer la guía</a></div>
+      </div>
+    </section>
+
+    <!-- CTA FINAL -->
+    <section class="section final">
+      <div class="wrap">
+        <h2 class="h-lg">Creá un recuerdo tan único como él.</h2>
+        <p class="lead center">Elegí tu kit, mandanos su foto y empezamos.</p>
+        <div class="cta-row">
+          <a class="btn btn--solid" href="#kits">Elegir mi kit</a>
+          <a class="btn btn--ghost" href="#kits">Ver productos</a>
+        </div>
+      </div>
+    </section>
+
+    <footer class="ft">
+      <div class="wrap">
+        <div class="ft__grid">
+          <a href="#kits">Kits</a>
+          <a href="#como">Cómo funciona</a>
+          <a href="#faq">Preguntas frecuentes</a>
+          <a href="/ebooks">Ebook</a>
+          <a href={IG} target="_blank" rel="noopener noreferrer">Instagram</a>
+        </div>
+        <p class="center" style="padding:0.4rem 0 2rem">Victoria Citro · @victoria.citro · Pago seguro con Mercado Pago</p>
+      </div>
+    </footer>
+  </body>
+</html>

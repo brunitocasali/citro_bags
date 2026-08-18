@@ -80,6 +80,36 @@
     "digital": false
   },
   {
+    "id": "prints-bolso-taza",
+    "title": "Kit Bolso + Taza",
+    "description": "Tote bag + taza con el retrato de tu mascota. Cada producto puede llevar una imagen distinta.",
+    "category": "kit",
+    "priceArs": 59000,
+    "shippingNote": "Envío gratis",
+    "available": true,
+    "digital": false
+  },
+  {
+    "id": "prints-recuerdo",
+    "title": "Kit Recuerdo",
+    "description": "Tote bag + taza + cuadro con el retrato de tu mascota. Cada producto puede llevar una imagen distinta.",
+    "category": "kit",
+    "priceArs": 99000,
+    "shippingNote": "Envío gratis",
+    "available": true,
+    "digital": false
+  },
+  {
+    "id": "prints-full",
+    "title": "Kit Full",
+    "description": "Tote bag + taza + cuadro + remera con el retrato de tu mascota. Cada producto puede llevar una imagen distinta.",
+    "category": "kit",
+    "priceArs": 149000,
+    "shippingNote": "Envío gratis",
+    "available": true,
+    "digital": false
+  },
+  {
     "id": "bolso-personalizado",
     "title": "Bolso de lujo pintado a mano",
     "description": "Bolso de cuero pintado a mano a pedido. Precio a definir según diseño y modelo: el cierre y la cotización los coordina Victoria por WhatsApp. Se deja NO disponible para pago directo a propósito.",
