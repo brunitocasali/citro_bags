@@ -48,6 +48,18 @@
     "available": true
   },
   {
+    "slug": "retrato-mascota",
+    "title": "Retrato digital de tu mascota",
+    "description": "Una pintura artística única de tu mascota, generada a partir de tu foto. Ideal para imprimir o usar en productos.",
+    "file": null,
+    "cover": "/ebook/retrato-mascota.webp",
+    "kind": "upsell",
+    "priceArs": null,
+    "regularPriceArs": 19900,
+    "upsellPriceArs": 9900,
+    "available": true
+  },
+  {
     "slug": "libro-de-su-vida-gatos",
     "title": "El Libro de Su Vida — Edición Gatos",
     "description": "Un ebook complementario para gatos, con herramientas para escribir lo maravilloso que fue esa vida junto a ellos.",
@@ -72,23 +84,11 @@
     "available": true
   },
   {
-    "slug": "retrato-mascota",
-    "title": "Retrato digital de tu mascota",
-    "description": "Una pintura artística única de tu mascota, generada a partir de tu foto. Ideal para imprimir o usar en productos.",
-    "file": null,
-    "cover": "/ebook/retrato-mascota.webp",
-    "kind": "upsell",
-    "priceArs": null,
-    "regularPriceArs": 19900,
-    "upsellPriceArs": 9900,
-    "available": true
-  },
-  {
     "slug": "cupon-personalizados",
-    "title": "10% OFF en productos personalizados",
+    "title": "10% OFF en productos personalizados de Victoria Citro",
     "description": "Sumá un descuento en retratos y productos personalizados de tu mascota, hechos a mano por Victoria.",
     "file": null,
-    "cover": "/ebook/victoria.jpg",
+    "cover": "/ebook/cupon-personalizados.webp",
     "kind": "upsell",
     "priceArs": null,
     "regularPriceArs": null,
